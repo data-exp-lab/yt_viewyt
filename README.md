@@ -6,7 +6,7 @@ http://goo.gl/forms/426HZLQEXG
 
 
 # Dependencies #
-In addition to YT, this script requires the PySide python package and its dependencies. It can be installed with dependencies via pip, homebrew, and macports. 
+In addition to YT, this script requires the PySide python package and its dependencies. It can be installed with dependencies via pip, homebrew, macports, or anaconda. 
 
 # Demo Execution #
-To run this demo simply type "python YTView0.py /path/to/loadable/data" 
+To run this demo simply type "python YTView0.py /path/to/loadable/data"
