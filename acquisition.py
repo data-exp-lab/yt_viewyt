@@ -2,23 +2,47 @@ import os
 from PySide import QtCore
 from PySide import QtGui
 
+
 class directoryObject(object):
 
-    def __init__(self):
-        self.location = os.getcwd()
-        self.directoryTree = "Undefined"
-        self.source = "Local Machine"
+    def __init__(self, path = None):
+        if path is None:
+            self.location = os.getcwd()
+            self.directoryTree = self.make_directory_tree()
+            self.source = "Local Machine"
 
-    def getLocation(self):
+    def make_directory_tree(self):
+        storageList = []
+        startOfTree = self.location.split('/')
+        startOfTree = '/' + '/'.join(startOfTree[0:len(startOfTree) - 1])
+        for root, dirs, files in os.walk(self.location):
+            root = root.split('/')
+            dirName = root[-1]
+            dirRepresentation = [dirName, dirs, files]
+            storageList.append(dirRepresentation)
+            for x in range(len(storageList) - 1, -1, -1):
+                for y in range(len(storageList[x][1])):
+                    dirName = c[x][1][y]
+                    for z in range(len[storageList] - 1, -1, -1):
+                        rootName = storageList[z][0]
+                        if dirName == rootName:
+                            c[x][1][y] = c[z]
+                            del c[z]
+        return c
+
+    def get_location(self):
         return self.location
 
-    def getSubDirectories(self):
-
-    def __pathFormer(listVar):
-        out = '/'
-        for x in range(1, len(listVar)):
-            out = out + listVar[x] + '/'
-
+    def get_sub_directories(self):
+        tipOfLocation = self.location.split('/')
+        tipOfLocation = tipOfLocation[-1]
+        cwdContentList = [value for value in
+                          self.directoryTree[1] == tipOfLocation]
+        cwdContentList = cwdContentList[0]
+        subDirectoryList = []
+        for x in cwdContentList[1]:
+            subDirectoryList.append(x[0])
+        return subDirectoryList
 
 class acquisitionSourceW(QtGui.QWidget):
 
