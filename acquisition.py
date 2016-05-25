@@ -256,6 +256,63 @@ class AcquisitionSourceW(QtGui.QWidget):
             self.activeDirectoryObj.change_directory(direction = 1, path = nextDir)
             self.set_file_tree_widget()
 
+class YtObject(object):
+
+    def __init__(self, fileName):
+        super(YtObject, self).__init__()
+        self.name = fileName
+
+        if isinstance(fileName, list):
+            self.data = yt.load(fileName)
+            self.dataType = "data set series"
+        else:
+            self.data = yt.load(fileName)
+            self.dataType = "dataset"
+
+    def make_geometric_object():
+
+    def make_point():
+
+    def make_ray():
+
+    def make_slice():
+
+    def make_all_data(self):
+        self.data = self.data.all_data()
+
+    def make_box_region():
+
+    def make_cylinder():
+
+    def make_ellipsoid():
+
+    def make_sphere():
+
+    def make_filtered_object():
+
+    def make_intersecting_region():
+
+    def make_cut_region():
+
+    def make_data_collection():
+
+    def make_construction_object():
+
+    def make_fixed_resolution_region():
+
+    def make_smooth_fixed_resolution_region():
+
+    def make_region_for_particle_deposition():
+
+    def make_projection():
+
+    def make_streamline():
+
+    def make_surface():
+
+
+
+
 def main():
     app = QtGui.QApplication(sys.argv)
     ex = acquisitionSourceW()
