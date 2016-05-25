@@ -64,11 +64,21 @@ class DirectoryObject(object):
 
     r"""gets the subdirectories present at your location."""
     def get_sub_directories(self):
-        return self.directoryTree[1]
+        tmp = self.directoryTree[1]
+        out = []
+        for x in tmp:
+            if x[0] != '.':
+                out.append(x)
+        return out
 
     r"""gets the files at your location."""
     def get_files(self):
-        return self.directoryTree[2]
+        tmp = self.directoryTree[2]
+        out = []
+        for x in tmp:
+            if x[0] != '~' and x[0] != '.':
+                out.append(x)
+        return out
 
     r"""changes directory in manner dependent on inputs.
 
@@ -100,8 +110,60 @@ class DirectoryObject(object):
 r"""A widget for adding sources, finding files, and passing said files to the
 load command.
 
+This widget is meant to enable file navigation from multiple sources (read devices) so that remote as well as local data can be accessed. It then calls for a ytObject to be instantiated utilizing the name and location of selected files.
+
+Parameters
+----------
+directoryObjs : list
+    A list of all available directory objs, both local and remote.
+activeDirectoryObj : DirectoryObject
+    The directory object whose files and folders are currently displayed by
+    the widget.
+fileTreeWidget : QTreeWidget
+    The widget that displays the ``activeDirectoryObj`` files and folders.
+    It also responds to user input to enable navigation on the ``activeDirectoryObj``.
+lButton : QPushButton
+    One of two buttons used to cycle through the list of available directoryObjs.
+    Currently has no functionality.
+rButton : QPushButton
+    The other button used to cycle through the list of avialable directories.
+    Currently has no functionality.
+sourceLabel : QLabel
+    A Widget whose text displays the current activeDirectoryObj.
+sourceBarLayout : QHBoxLayout
+    The layout of the widget containing lButton, rButton, and
+    sourceLabel.
+sourceBarWidget : QWidget
+    The widget containing lButton, rButton, and sourceLabel
+loadButtton : QPushButton
+    The button that is supposed to function as the call
+    to load a file for users. Subject to change.
+layout : QVBoxLayout
+    The Layout of this widget.
+Notes
+------
+This is going to be something that will be continuously modified so long as
+someone is working on the app as a whole. Potential improvements include:
+-shortening __init__
+    accomplished by making functions that take care of setting up layouts.
+-creating a widget menu
+    making a widget that appears when users left click on files to load
+    them. This menu would have the ability to load straight to a view, load the
+    files as a dataset series, move the files, etc.
+-acceptable file highlighting
+    create a way to identify files that can be loaded by yt or loaded into a
+    view. have these files and their parent directories have a standard
+    appearance. Other files and directories would have a lower contrast
+    or whatever terminology describes the demphasis exhibited by other
+    folder navigation systems (finder *cough cough*).
+-ability to have remote sources
+    enable remote data access. This will mean placing an add and subract
+    button somewhere. Beyond that, I currently have no idea how to go about this.
+-Whatever a bulk number of users request
+    this is made for users by users, so if we all want something, make every
+    effort to make it happen.
 """
-class acquisitionSourceW(QtGui.QWidget):
+class AcquisitionSourceW(QtGui.QWidget):
 
     def __init__(self):
         super(acquisitionSourceW, self).__init__()
@@ -129,17 +191,26 @@ class acquisitionSourceW(QtGui.QWidget):
         self.sourceBarWidget = QtGui.QWidget()
         self.sourceBarWidget.setLayout(self.sourceBarLayout)
 
+        self.loadButton = QtGui.QPushButton("Load")
+
         self.layout = QtGui.QVBoxLayout()
         self.layout.addWidget(self.sourceBarWidget)
         self.layout.addWidget(self.fileTreeWidget)
+        self.layout.addWidget(self.loadButton)
 
         self.setLayout(self.layout)
         self.show()
 
+    r"""Initializes a local DirectoryObject."""
     def make_initial_DirectoryObjects(self):
         a = DirectoryObject()
         self.directoryObjs.append(a)
 
+    r"""Lists everything in the current directory as a tree.
+
+        This takes every file and directory in the current
+        directory and constructs a Tree widget with
+        icons."""
     def set_file_tree_widget(self):
         self.fileTreeWidget.setColumnCount(1)
         hiddenHeader = QtGui.QTreeWidgetItem()
@@ -152,17 +223,32 @@ class acquisitionSourceW(QtGui.QWidget):
         for x in self.activeDirectoryObj.get_files():
             childItem = QtGui.QTreeWidgetItem(directory)
             childItem.setText(0, x)
+            childItem.setIcon(0, self.style().standardIcon(
+                QtGui.QStyle.SP_FileIcon))
         for x in self.activeDirectoryObj.get_sub_directories():
             childItem = QtGui.QTreeWidgetItem(directory)
             childItem.setText(0, x)
+            childItem.setIcon(0, self.style().standardIcon(
+                QtGui.QStyle.SP_DirIcon))
         self.fileTreeWidget.addTopLevelItem(directory)
         directory.setExpanded(True)
 
+    r"""Function called by collapsing the current directory representation
+        on screen.
+
+        This function clears the fileTreeWidget, moves the activeDirectoryObj to
+        the directory above the current working directory, and reconstructs the
+        fileTreeWidget based on the new location."""
     def move_up(self):
         self.fileTreeWidget.clear()
         self.activeDirectoryObj.change_directory(direction = -1)
         self.set_file_tree_widget()
 
+    r"""Function called by clicking on an entry in the fileTreeWidget that is
+        also a sub-directory of the current working directory. Moves the
+        activeDirectoryObj to the sub-directory, clears the fileTreeWidget,
+        and then constructs the fileTreeWidget according to the new location.
+    """
     def move_down(self):
         if self.fileTreeWidget.currentItem().text(0) in self.activeDirectoryObj.get_sub_directories():
             nextDir = self.fileTreeWidget.currentItem().text(0)
