@@ -1,5 +1,6 @@
 import sys
 import os
+import yt
 from PySide import QtCore
 from PySide import QtGui
 
@@ -166,7 +167,7 @@ someone is working on the app as a whole. Potential improvements include:
 class AcquisitionSourceW(QtGui.QWidget):
 
     def __init__(self):
-        super(acquisitionSourceW, self).__init__()
+        super(AcquisitionSourceW, self).__init__()
 
         self.directoryObjs = []
         self.make_initial_DirectoryObjects()
@@ -260,62 +261,78 @@ class YtObject(object):
 
     def __init__(self, fileName):
         super(YtObject, self).__init__()
-        self.name = fileName
 
         if isinstance(fileName, list):
             self.data = yt.load(fileName)
             self.dataType = "data set series"
+            self.name = "Needs Work"
         else:
             self.data = yt.load(fileName)
             self.dataType = "dataset"
+            self.name = fileName
 
-    def make_geometric_object():
+class AcquisitionActiveW(QtGui.QWidget):
 
-    def make_point():
+    def __init__(self):
+        super(AcquisitionActiveW, self).__init__()
+        self.dataObjects = []
+        self.activeDataObject = None
 
-    def make_ray():
+        self.label = QtGui.QLabel("Active Data Objects")
 
-    def make_slice():
+        self.dataObjectListWidget = QtGui.QListWidget()
+        self.set_ObjectListWidget()
 
-    def make_all_data(self):
-        self.data = self.data.all_data()
+        self.layout = QtGui.QVBoxLayout()
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.dataObjectListWidget)
+        self.setLayout(self.layout)
 
-    def make_box_region():
+        self.show()
 
-    def make_cylinder():
+    def add_data_object(self, dataObject):
+        self.dataObjects.append(dataObject)
+        self.set_ObjectListWidget()
 
-    def make_ellipsoid():
+    def add_data_object_from_file(self, filename):
+        self.dataObjects.append(YtObject(filename))
+        self.set_ObjectListWidget()
 
-    def make_sphere():
 
-    def make_filtered_object():
+    #def set_active_DataObject(self):
 
-    def make_intersecting_region():
+    def set_ObjectListWidget(self):
+        self.dataObjectListWidget.clear()
+        for x in self.dataObjects:
+            listWidgetItem = QtGui.QListWidgetItem()
+            listWidgetItem.setText(x.name)
+            listWidgetItem.setIcon(QtGui.QIcon("icons/yt_icon.png"))
+            self.dataObjectListWidget.addItem(listWidgetItem)
 
-    def make_cut_region():
+class AcquisitionMasterW(QtGui.QWidget):
 
-    def make_data_collection():
+    def __init__(self):
+        super(AcquisitionMasterW, self).__init__()
+        self.sourceW = AcquisitionSourceW()
+        self.activeW = AcquisitionActiveW()
 
-    def make_construction_object():
+        self.sourceW.loadButton.clicked.connect(self.load_to_activeW)
 
-    def make_fixed_resolution_region():
+        self.layout = QtGui.QVBoxLayout()
+        self.layout.addWidget(self.activeW)
+        self.layout.addWidget(self.sourceW)
+        self.setLayout(self.layout)
+        self.show()
 
-    def make_smooth_fixed_resolution_region():
-
-    def make_region_for_particle_deposition():
-
-    def make_projection():
-
-    def make_streamline():
-
-    def make_surface():
-
+    def load_to_activeW(self):
+        selectedFile = self.sourceW.fileTreeWidget.currentItem().text(0)
+        self.activeW.add_data_object_from_file(selectedFile)
 
 
 
 def main():
     app = QtGui.QApplication(sys.argv)
-    ex = acquisitionSourceW()
+    ex = AcquisitionMasterW()
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
