@@ -271,6 +271,9 @@ class YtObject(object):
             self.dataType = "dataset"
             self.name = fileName
 
+    def get_data(self):
+        return self.data
+
 class AcquisitionActiveW(QtGui.QWidget):
 
     def __init__(self):
@@ -282,10 +285,14 @@ class AcquisitionActiveW(QtGui.QWidget):
 
         self.dataObjectListWidget = QtGui.QListWidget()
         self.set_ObjectListWidget()
+        self.dataObjectListWidget.itemClicked.connect(self.set_active_DataObject)
+
+        self.passToViewButton = QtGui.QPushButton("View")
 
         self.layout = QtGui.QVBoxLayout()
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.dataObjectListWidget)
+        self.layout.addWidget(self.passToViewButton)
         self.setLayout(self.layout)
 
         self.show()
@@ -299,7 +306,13 @@ class AcquisitionActiveW(QtGui.QWidget):
         self.set_ObjectListWidget()
 
 
-    #def set_active_DataObject(self):
+    def set_active_DataObject(self):
+        for x in self.dataObjects:
+            if x.name == self.dataObjectListWidget.currentItem().text():
+                self.activeDataObject = x
+
+    def get_active_DataObject(self):
+        return self.activeDataObject
 
     def set_ObjectListWidget(self):
         self.dataObjectListWidget.clear()
@@ -308,6 +321,7 @@ class AcquisitionActiveW(QtGui.QWidget):
             listWidgetItem.setText(x.name)
             listWidgetItem.setIcon(QtGui.QIcon("icons/yt_icon.png"))
             self.dataObjectListWidget.addItem(listWidgetItem)
+
 
 class AcquisitionMasterW(QtGui.QWidget):
 
