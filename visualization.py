@@ -15,6 +15,7 @@ class YtPlot(object):
         self.plot = yt.SlicePlot(data_source, "x", 'density', center = [0.5, 0.5, 0.5])
         self.plot = self.plot.plots[('gas', 'density')]
         self.plot = self.plot._repr_widget_()
+
     def get_plot(self):
         return self.plot
 
