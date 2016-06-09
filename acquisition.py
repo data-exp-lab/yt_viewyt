@@ -1,8 +1,8 @@
 import sys
 import os
 import yt
-from PySide import QtCore
-from PySide import QtGui
+from PyQt4 import QtCore
+from PyQt4 import QtGui
 
 
 
@@ -302,9 +302,9 @@ class AcquisitionActiveW(QtGui.QWidget):
         self.set_ObjectListWidget()
 
     def add_data_object_from_file(self, filename):
-        self.dataObjects.append(YtObject(filename))
-        self.set_ObjectListWidget()
-
+        print filename
+        tempObj = YtObject(filename)
+        self.add_data_object(tempObj)
 
     def set_active_DataObject(self):
         for x in self.dataObjects:
@@ -340,6 +340,7 @@ class AcquisitionMasterW(QtGui.QWidget):
 
     def load_to_activeW(self):
         selectedFile = self.sourceW.fileTreeWidget.currentItem().text(0)
+        selectedFile = str(selectedFile)
         self.activeW.add_data_object_from_file(selectedFile)
 
 
