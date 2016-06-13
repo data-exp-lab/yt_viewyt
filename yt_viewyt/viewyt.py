@@ -11,10 +11,6 @@ from acquisition import AcquisitionMasterW
 from visualization import YtPlot
 from console import QIPythonWidget
 import matplotlib
-#from matpotlib.backends.backend_qt4agg import FigureCanvasQtAgg as FigureCanvas
-
-#method of displaying yt plots without saving to disk is taken from
-#http://matplotlib.org/examples/user_interfaces/embedding_in_qt4.html
 
 
 class ViewYt(QWidget):
@@ -31,7 +27,6 @@ class ViewYt(QWidget):
 
         self.ipythonWidget = QIPythonWidget()
 
-        executeNotebookCommand = QKeyEvent(QEvent.KeyPress, Qt.Key_Enter, Qt.NoModifier)
         tempWidget = QWidget()
         tempLayout = QVBoxLayout()
         tempLayout.addWidget(self.viewWidget)
@@ -46,13 +41,14 @@ class ViewYt(QWidget):
         self.layout.addWidget(tempWidget)
         self.setLayout(self.layout)
         self.show()
+        self.ipythonWidget.pushVariables({'ViewYT': self})
 
     def pass_to_view(self):
         selected_data = self.acquisitionWidget.activeW.get_active_DataObject()
         selected_data = selected_data.data
         plot = YtPlot(selected_data)
-        plot = plot.get_plot()
-        print type(plot)
+        #self.ipythonWidget.pushVariables({'plot': plot.get_plot()})
+        plot = plot.get_plot_image()
         self.viewWidget.setCentralWidget(plot)
         self.viewWidget.resize(512, 512)
         self.show()
