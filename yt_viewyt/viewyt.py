@@ -36,8 +36,13 @@ class ViewYt(QWidget):
         self.acquisitionWidget.activeW.passToViewButton.clicked.connect(
             self.pass_to_view)
 
+        self.hideAcquisitionB = QPushButton('<<')
+        self.hideAcquisitionB.setFixedSize(20, self.size().height())
+        self.hideAcquisitionB.clicked.connect(self.hide_acquisition)
+
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.acquisitionWidget)
+        self.layout.addWidget(self.hideAcquisitionB)
         self.layout.addWidget(tempWidget)
         self.setLayout(self.layout)
         self.show()
@@ -52,13 +57,13 @@ class ViewYt(QWidget):
         self.viewWidget.resize(512, 512)
         self.show()
 
-    def show_from_conditions(self):
-        layout = QHBoxLayout()
-        layout.addWidget(self.acquisitionWidget)
-        layout.addWidget(self.viewWidget)
-        self.setLayout(layout)
-        self.show()
-
+    def hide_acquisition(self):
+        if not self.acquisitionWidget.isHidden():
+            self.acquisitionWidget.setHidden(True)
+            self.hideAcquisitionB.setText('>>')
+        else:
+            self.acquisitionWidget.setHidden(False)
+            self.hideAcquisitionB.setText('<<')
 
 def main():
     app = QApplication(sys.argv)
