@@ -47,8 +47,7 @@ class ViewYt(QWidget):
         selected_data = self.acquisitionWidget.activeW.get_active_DataObject()
         selected_data = selected_data.data
         plot = YtPlot(selected_data)
-        #self.ipythonWidget.pushVariables({'plot': plot.get_plot()})
-        plot = plot.get_plot_image()
+        plot = plot.get_plot()
         self.viewWidget.setCentralWidget(plot)
         self.viewWidget.resize(512, 512)
         self.show()

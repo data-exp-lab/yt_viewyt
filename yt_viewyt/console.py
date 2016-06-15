@@ -3,9 +3,6 @@
 # Set the QT API to PyQt4
 import os
 os.environ['QT_API'] = 'pyqt'
-#import sip
-#sip.setapi("QString", 2)
-#sip.setapi("QVariant", 2)
 from PyQt4.QtGui  import *
 # Import the console machinery from ipython
 from qtconsole.rich_ipython_widget import RichJupyterWidget
@@ -26,7 +23,7 @@ class QIPythonWidget(RichJupyterWidget):
         def stop():
             kernel_client.stop_channels()
             kernel_manager.shutdown_kernel()
-            guisupport.get_app_qt4().exit()            
+            guisupport.get_app_qt4().exit()
         self.exit_requested.connect(stop)
 
     def pushVariables(self,variableDict):
@@ -34,10 +31,10 @@ class QIPythonWidget(RichJupyterWidget):
         self.kernel_manager.kernel.shell.push(variableDict)
     def clearTerminal(self):
         """ Clears the terminal """
-        self._control.clear()    
+        self._control.clear()
     def printText(self,text):
         """ Prints some plain text to the console """
-        self._append_plain_text(text)        
+        self._append_plain_text(text)
     def executeCommand(self,command):
         """ Execute a command in the frame of the console widget """
         self._execute(command,False)
