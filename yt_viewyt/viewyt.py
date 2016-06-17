@@ -10,6 +10,7 @@ from PyQt4.QtCore import *
 from acquisition import AcquisitionMasterW
 from visualization import YtPlot
 from console import QIPythonWidget
+from manipulation import LocationWidget
 import matplotlib
 
 
@@ -40,10 +41,13 @@ class ViewYt(QWidget):
         self.hideAcquisitionB.setFixedSize(20, self.size().height())
         self.hideAcquisitionB.clicked.connect(self.hide_acquisition)
 
+        self.manipulationWidget = LocationWidget()
+
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.acquisitionWidget)
         self.layout.addWidget(self.hideAcquisitionB)
         self.layout.addWidget(tempWidget)
+        self.layout.addWidget(self.manipulationWidget)
         self.setLayout(self.layout)
         self.show()
         self.ipythonWidget.pushVariables({'ViewYT': self})
@@ -54,7 +58,7 @@ class ViewYt(QWidget):
         plot = YtPlot(selected_data)
         plot = plot.get_plot()
         self.viewWidget.setCentralWidget(plot)
-        self.viewWidget.resize(512, 512)
+        self.viewWidget.resize(256, 256)
         self.show()
 
     def hide_acquisition(self):
