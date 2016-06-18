@@ -19,14 +19,22 @@ class CoordinateWidget(QWidget):
 
         self.setLayout(self.layout)
 
-class UnitWidget(QComboBox):
+class UnitWidget(QWidget):
 
     def __init__(self, dimension):
         super(UnitWidget, self).__init__()
 
+        self.unitComboBox = QComboBox()
+        self.label = QLabel("Units:")
+
         for x in unitTable:
             if unitTable[x][1] == dimension:
-                self.addItem(x)
+                self.unitComboBox.addItem(x)
+
+        layout = QHBoxLayout()
+        layout.addWidget(self.label)
+        layout.addWidget(self.unitComboBox)
+        self.setLayout(layout)
 
         self.show()
 
@@ -38,17 +46,14 @@ class LocationWidget(QWidget):
     def __init__(self):
         super(LocationWidget, self).__init__()
 
-        layout = QHBoxLayout()
-
-        for c in ['x:', 'y:', 'z:']:
-            layout.addWidget(CoordinateWidget(c))
-
-        lengthLabel = QLabel("Units:")
+        layout = QVBoxLayout()
 
         lengthWidget = UnitWidget(dimensions.length)
 
-        layout.addWidget(lengthLabel)
         layout.addWidget(lengthWidget)
+
+        for c in ['X:', 'Y:', 'Z:']:
+            layout.addWidget(CoordinateWidget(c))
 
         self.setLayout(layout)
 
