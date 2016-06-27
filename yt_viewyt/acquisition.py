@@ -1,70 +1,96 @@
+"""All classes associated with acquiring data for application"""
+
 import sys
 import os
 import yt
-from PyQt4 import QtCore
 from PyQt4 import QtGui
 
 
-
-r"""The initial component for an object that provides a backend for navigating
-folders on a system.
-
-This class provides immediate access to a users location in the system
-directory, any sub-directories the user can move into, and any files
-in the current user location. It also has the ability to move around
-in the directory system.
-
-Parameters
-----------
-location:String
-    String that contains the current working directory.
-directoryTree:List
-    List that contains the path-name of the current directory,
-    the list of sub-directories in the current directory, and
-    a list of files in the current directory.
-source:String
-    a string denoting where the current directoryObject is from.
-    A future goal of this application is the ability to support
-    data from multiple sources via ssh.
-
-Notes:
--------
-I have not investigated it deeply due to my ignorance regarding networking,
-but the following topics may provide the foundation needed to build an inter-device
-application:
--python subprocess module
--QtGui.QFileSystemModel
-"""
-
 class DirectoryObject(object):
+    r"""The initial component for an object that provides a backend
+    for navigating folders on a system.
 
-    r"""Initializes all object parameters."""
-    def __init__(self, path = None, source = "Local Machine"):
+    This class provides immediate access to a users location in the system
+    directory, any sub-directories the user can move into, and any files
+    in the current user location. It also has the ability to move around
+    in the directory system.
+
+    Parameters
+    ----------
+    location : String
+        String that contains the current working directory.
+    directoryTree : List
+        List that contains the path-name of the current directory,
+        the list of sub-directories in the current directory, and
+        a list of files in the current directory.
+    source : String
+        The string denoting where the current directoryObject is from.
+        A future goal of this application is the ability to support
+        data from multiple sources via some mechanism.
+
+    Notes:
+    -------
+    I have not investigated it deeply due to my ignorance regarding networking,
+    but the following topics may provide the foundation needed to build an
+    inter-device application:
+    -python subprocess module
+    -QtGui.QFileSystemModel
+    """
+
+    def __init__(self, path=None, source="Local Machine"):
+        r"""Initializes an instance of the DirectoryObject.
+
+        Creates a DirectoryObject based on an input path, with the initial
+        assumption that the path is to a location on the local machine.
+
+        Parameters
+        ----------
+        path : {None, sting}, optional
+            The path that marks the initial location of the given
+            instance.
+        source : {'Local Machine', 'other source string'}, optional
+            The source of the given path and ultimately the instance
+            itself. Defaults to "Local Machine".
+
+        Returns
+        -------
+        DirectoryObject
+            """
         if path is None:
             self.location = os.getcwd()
             self.directoryTree = self.make_directory_tree()
             self.source = source
-        if path is not None:
+        else:
             self.location = path
             self.location = self.make_directory_tree()
             self.source = source
 
-    r"""Provides a list of information about the current working directory"""
     def make_directory_tree(self):
+        r"""Provides a list of information about the current
+        working directory.
+
+        Provides the current directory name, sub directories, and files
+        by taking the first output of the os.walk() command.
+
+        Returns
+        -------
+        List
+            This output contains the current directory name, subdirectory
+            names, and file names in the current directory, in that order."""
         a = os.walk(self.location).next()
         dirName = a[0].split('/')
         dirName = dirName[-1]
         return [dirName, a[1], a[2]]
 
-    r"""gets your location"""
     def get_location(self):
+        r"""gets your location"""
         return self.location
 
     def get_top_dir_name(self):
         return self.directoryTree[0]
 
-    r"""gets the subdirectories present at your location."""
     def get_sub_directories(self):
+        r"""gets the subdirectories present at your location."""
         tmp = self.directoryTree[1]
         out = []
         for x in tmp:
@@ -72,8 +98,8 @@ class DirectoryObject(object):
                 out.append(x)
         return out
 
-    r"""gets the files at your location."""
     def get_files(self):
+        r"""gets the files at your location."""
         tmp = self.directoryTree[2]
         out = []
         for x in tmp:
@@ -81,22 +107,22 @@ class DirectoryObject(object):
                 out.append(x)
         return out
 
-    r"""changes directory in manner dependent on inputs.
+    def change_directory(self, direction={-1, 1}, path=None):
+        r"""changes directory in manner dependent on inputs.
 
-    based on the value of direction, the method moves the object up or down
-    in the system's directory hierarchy. If the desire is to move down, a
-    subdirectory name must be provided.
+        based on the value of direction, the method moves the object up or down
+        in the system's directory hierarchy. If the desire is to move down, a
+        subdirectory name must be provided.
 
-    parameters
-    ----------
-    direction : int
-        Dictates if changing to a subdirectory or super directory,
-        based on sign of int.
-    path : {None, string}, optional
-        if not None, it is expected that the object is moving to an immediate
-        subdirectory whose name is the value of path.
-    """
-    def change_directory(self, direction = {-1, 1}, path = None):
+        parameters
+        ----------
+        direction : int
+            Dictates if changing to a subdirectory or super directory,
+            based on sign of int.
+        path : {None, string}, optional
+            if not None, it is expected that the object is moving to an
+            immediate subdirectory whose name is the value of path.
+        """
         if direction == 1:
             os.chdir(self.location + "/" + path)
             self.location = os.getcwd()
@@ -108,63 +134,70 @@ class DirectoryObject(object):
             self.location = os.getcwd()
             self.directoryTree = self.make_directory_tree()
 
-r"""A widget for adding sources, finding files, and passing said files to the
-load command.
 
-This widget is meant to enable file navigation from multiple sources (read devices) so that remote as well as local data can be accessed. It then calls for a ytObject to be instantiated utilizing the name and location of selected files.
+class AcquisitionSourceW(QtGui.QWidget):
+    r"""A widget for adding sources, finding files, and passing said files to the
+    load command.
 
-Parameters
-----------
-directoryObjs : list
-    A list of all available directory objs, both local and remote.
-activeDirectoryObj : DirectoryObject
-    The directory object whose files and folders are currently displayed by
-    the widget.
-fileTreeWidget : QTreeWidget
-    The widget that displays the ``activeDirectoryObj`` files and folders.
-    It also responds to user input to enable navigation on the ``activeDirectoryObj``.
-lButton : QPushButton
-    One of two buttons used to cycle through the list of available directoryObjs.
-    Currently has no functionality.
-rButton : QPushButton
-    The other button used to cycle through the list of avialable directories.
-    Currently has no functionality.
-sourceLabel : QLabel
-    A Widget whose text displays the current activeDirectoryObj.
-sourceBarLayout : QHBoxLayout
-    The layout of the widget containing lButton, rButton, and
-    sourceLabel.
-sourceBarWidget : QWidget
-    The widget containing lButton, rButton, and sourceLabel
-loadButtton : QPushButton
-    The button that is supposed to function as the call
-    to load a file for users. Subject to change.
-layout : QVBoxLayout
-    The Layout of this widget.
-Notes
-------
-This is going to be something that will be continuously modified so long as
-someone is working on the app as a whole. Potential improvements include:
--shortening __init__
+    This widget is meant to enable file navigation from multiple sources
+    (read devices) so that remote as well as local data can be accessed.
+    It then calls for a ytObject to be instantiated utilizing the name
+    and location of selected files.
+
+    Parameters
+    ----------
+    directoryObjs : list
+        A list of all available directory objs, both local and remote.
+    activeDirectoryObj : DirectoryObject
+        The directory object whose files and folders are currently displayed by
+        the widget.
+    fileTreeWidget : QTreeWidget
+        The widget that displays the ``activeDirectoryObj`` files and folders.
+        It also responds to user input to enable navigation on the
+        ``activeDirectoryObj``.
+    lButton : QPushButton
+        One of two buttons used to cycle through the list of available
+        directoryObjs. Currently has no functionality.
+    rButton : QPushButton
+        The other button used to cycle through the list of available
+        directories. Currently has no functionality.
+    sourceLabel : QLabel
+        A Widget whose text displays the current activeDirectoryObj.
+    sourceBarLayout : QHBoxLayout
+        The layout of the widget containing lButton, rButton, and
+        sourceLabel.
+    sourceBarWidget : QWidget
+        The widget containing lButton, rButton, and sourceLabel
+    loadButtton : QPushButton
+        The button that is supposed to function as the call
+        to load a file for users. Subject to change.
+    layout : QVBoxLayout
+        The Layout of this widget.
+
+    Notes
+    ------
+    This is going to be something that will be continuously modified so long as
+    someone is working on the app as a whole. Potential improvements include:
+    -shortening __init__
     accomplished by making functions that take care of setting up layouts.
--creating a widget menu
+    -creating a widget menu
     making a widget that appears when users left click on files to load
     them. This menu would have the ability to load straight to a view, load the
     files as a dataset series, move the files, etc.
--acceptable file highlighting
+    -acceptable file highlighting
     create a way to identify files that can be loaded by yt or loaded into a
     view. have these files and their parent directories have a standard
     appearance. Other files and directories would have a lower contrast
     or whatever terminology describes the demphasis exhibited by other
     folder navigation systems (finder *cough cough*).
--ability to have remote sources
+    -ability to have remote sources
     enable remote data access. This will mean placing an add and subract
-    button somewhere. Beyond that, I currently have no idea how to go about this.
--Whatever a bulk number of users request
+    button somewhere. Beyond that, I currently have no idea how to go
+    about this.
+    -Whatever a bulk number of users request
     this is made for users by users, so if we all want something, make every
     effort to make it happen.
-"""
-class AcquisitionSourceW(QtGui.QWidget):
+    """
 
     def __init__(self):
         super(AcquisitionSourceW, self).__init__()
@@ -202,17 +235,17 @@ class AcquisitionSourceW(QtGui.QWidget):
         self.setLayout(self.layout)
         self.show()
 
-    r"""Initializes a local DirectoryObject."""
     def make_initial_DirectoryObjects(self):
+        r"""Initializes a local DirectoryObject."""
         a = DirectoryObject()
         self.directoryObjs.append(a)
 
-    r"""Lists everything in the current directory as a tree.
+    def set_file_tree_widget(self):
+        r"""Lists everything in the current directory as a tree.
 
         This takes every file and directory in the current
         directory and constructs a Tree widget with
         icons."""
-    def set_file_tree_widget(self):
         self.fileTreeWidget.setColumnCount(1)
         hiddenHeader = QtGui.QTreeWidgetItem()
         hiddenHeader.setText(0, "go away")
@@ -234,32 +267,80 @@ class AcquisitionSourceW(QtGui.QWidget):
         self.fileTreeWidget.addTopLevelItem(directory)
         directory.setExpanded(True)
 
-    r"""Function called by collapsing the current directory representation
+    def move_up(self):
+        r"""Function called by collapsing the current directory representation
         on screen.
 
-        This function clears the fileTreeWidget, moves the activeDirectoryObj to
-        the directory above the current working directory, and reconstructs the
-        fileTreeWidget based on the new location."""
-    def move_up(self):
+        This function clears the fileTreeWidget, moves the activeDirectoryObj
+        to the directory above the current working directory, and
+        reconstructs the fileTreeWidget based on the new location."""
         self.fileTreeWidget.clear()
-        self.activeDirectoryObj.change_directory(direction = -1)
+        self.activeDirectoryObj.change_directory(direction=-1)
         self.set_file_tree_widget()
 
-    r"""Function called by clicking on an entry in the fileTreeWidget that is
+    def move_down(self):
+        r"""Function called by clicking on an entry in the fileTreeWidget that is
         also a sub-directory of the current working directory. Moves the
         activeDirectoryObj to the sub-directory, clears the fileTreeWidget,
         and then constructs the fileTreeWidget according to the new location.
-    """
-    def move_down(self):
-        if self.fileTreeWidget.currentItem().text(0) in self.activeDirectoryObj.get_sub_directories():
+        """
+        if self.fileTreeWidget.currentItem().text(0) \
+           in self.activeDirectoryObj.get_sub_directories():
             nextDir = self.fileTreeWidget.currentItem().text(0)
             self.fileTreeWidget.clear()
-            self.activeDirectoryObj.change_directory(direction = 1, path = nextDir)
+            self.activeDirectoryObj.change_directory(direction=1, path=nextDir)
             self.set_file_tree_widget()
 
+
 class YtObject(object):
+    r"""A basic representation of a data object loaded through yt.
+
+    This is the object that is used to track all objects that have been
+    loaded with yt or created by a method written in yt, like novel
+    data objects.
+
+    Parameters
+    -----------
+    data : yt.frontends object
+        The actual data object referenced by yt.
+
+    dataType : string
+        This parameter references whether the data loaded into yt is a dataset
+        series or a single data object. It will ultimately be used to determine
+        whether widgets that manipulate the time step of a view will be
+        available or not.
+
+    name : string
+        The name of the loaded object. It defaults to the name of the filename
+        in the case of a single data object.
+
+    Notes
+    ------
+    This is a weak class at the moment, and could utilize a lot of work.
+    Some improvements that could be made:
+    -Support for icons that distinguish what frontend yt is using, and if the
+    object is a single data object or a data series.
+    -Methods to create novel data objects from the initial file loaded, and to
+    name those novel objects
+    -Methods to save data objects
+    """
 
     def __init__(self, fileName):
+        r"""Initializes an instance of the YtObject.
+
+        Specifically, this creates an instance of YtObject based on the type
+        of `fileName`. If it is a list, the initialization assumes a
+        data series.
+
+        Parameters
+        ----------
+        fileName : string or list of string
+            The name of the file from which the instance is being
+            initialized.
+
+        Returns
+        -------
+        self : YtObject"""
         super(YtObject, self).__init__()
 
         if isinstance(fileName, list):
@@ -272,7 +353,15 @@ class YtObject(object):
             self.name = fileName
 
     def get_data(self):
+        r"""Returns the yt data object for the given instance
+
+        Returns
+        -------
+        data : yt.frontend_like
+        The data from the instance of the YtObject.
+        """
         return self.data
+
 
 class AcquisitionActiveW(QtGui.QWidget):
 
@@ -285,7 +374,8 @@ class AcquisitionActiveW(QtGui.QWidget):
 
         self.dataObjectListWidget = QtGui.QListWidget()
         self.set_ObjectListWidget()
-        self.dataObjectListWidget.itemClicked.connect(self.set_active_DataObject)
+        self.dataObjectListWidget.itemClicked.connect(
+            self.set_active_DataObject)
 
         self.passToViewButton = QtGui.QPushButton("View")
 
@@ -344,10 +434,9 @@ class AcquisitionMasterW(QtGui.QWidget):
         self.activeW.add_data_object_from_file(selectedFile)
 
 
-
 def main():
     app = QtGui.QApplication(sys.argv)
-    ex = AcquisitionMasterW()
+    AcquisitionMasterW()
     sys.exit(app.exec_())
 
 if __name__ == "__main__":

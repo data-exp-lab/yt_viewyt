@@ -8,7 +8,7 @@ import StringIO
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from acquisition import AcquisitionMasterW
-from visualization import YtPlot
+from visualization import YtView
 from console import QIPythonWidget
 from manipulation import LocationWidget
 import matplotlib
@@ -55,7 +55,7 @@ class ViewYt(QWidget):
     def pass_to_view(self):
         selected_data = self.acquisitionWidget.activeW.get_active_DataObject()
         selected_data = selected_data.data
-        plot = YtPlot(selected_data)
+        plot = YtView(selected_data)
         plot = plot.get_plot()
         self.viewWidget.setCentralWidget(plot)
         self.viewWidget.resize(256, 256)
