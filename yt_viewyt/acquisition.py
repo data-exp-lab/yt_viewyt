@@ -83,14 +83,25 @@ class DirectoryObject(object):
         return [dirName, a[1], a[2]]
 
     def get_location(self):
-        r"""gets your location"""
+        r"""Gets the location of the DirectoryObject instance.
+
+        Returns
+        -------
+        string
+            The current working directory of the DirectoryObject instance."""
         return self.location
 
     def get_top_dir_name(self):
         return self.directoryTree[0]
 
     def get_sub_directories(self):
-        r"""gets the subdirectories present at your location."""
+        r"""Gets all visible subdirectories present at the instances location.
+
+        Returns
+        -------
+        out : list
+            A list of all visible subdirectories.
+        """
         tmp = self.directoryTree[1]
         out = []
         for x in tmp:
@@ -99,7 +110,13 @@ class DirectoryObject(object):
         return out
 
     def get_files(self):
-        r"""gets the files at your location."""
+        r"""Gets the files at your location.
+
+        Returns
+        -------
+        out : list
+            A list of all files in the current directory that are not
+            buffers or intentionally hidden."""
         tmp = self.directoryTree[2]
         out = []
         for x in tmp:
@@ -108,13 +125,13 @@ class DirectoryObject(object):
         return out
 
     def change_directory(self, direction={-1, 1}, path=None):
-        r"""changes directory in manner dependent on inputs.
+        r"""Changes directory in manner dependent on inputs.
 
         based on the value of direction, the method moves the object up or down
         in the system's directory hierarchy. If the desire is to move down, a
         subdirectory name must be provided.
 
-        parameters
+        Parameters
         ----------
         direction : int
             Dictates if changing to a subdirectory or super directory,
@@ -141,7 +158,7 @@ class AcquisitionSourceW(QtGui.QWidget):
 
     This widget is meant to enable file navigation from multiple sources
     (read devices) so that remote as well as local data can be accessed.
-    It then calls for a ytObject to be instantiated utilizing the name
+    It then calls for a YtObject to be instantiated utilizing the name
     and location of selected files.
 
     Parameters
@@ -200,6 +217,11 @@ class AcquisitionSourceW(QtGui.QWidget):
     """
 
     def __init__(self):
+        r""""Initializes an instance of AcquisitionSourceW.
+
+        Creates an object with the capacity to display the contents of a
+        DirectoryObject along with icons for files and directories. This
+        widget also responds to user input, enabling directory navigation."""
         super(AcquisitionSourceW, self).__init__()
 
         self.directoryObjs = []
@@ -279,10 +301,11 @@ class AcquisitionSourceW(QtGui.QWidget):
         self.set_file_tree_widget()
 
     def move_down(self):
-        r"""Function called by clicking on an entry in the fileTreeWidget that is
-        also a sub-directory of the current working directory. Moves the
-        activeDirectoryObj to the sub-directory, clears the fileTreeWidget,
-        and then constructs the fileTreeWidget according to the new location.
+        r"""Function called by clicking on a subdirectory.
+
+        Similar to move_up, this function clears the fileTreeWidget, moves
+        the activeDirectoryObj to the selected subdirectory and reconstructs
+        the fileTreeWidget based on the new location.
         """
         if self.fileTreeWidget.currentItem().text(0) \
            in self.activeDirectoryObj.get_sub_directories():
@@ -358,14 +381,45 @@ class YtObject(object):
         Returns
         -------
         data : yt.frontend_like
-        The data from the instance of the YtObject.
+            The data from the instance of the YtObject.
         """
         return self.data
 
 
 class AcquisitionActiveW(QtGui.QWidget):
+    r"""A widget displaying all user created instances of YtObject.
 
+    Utilizing a list widget, this class displays each string in
+    `activeDataObject`. It also has the ability to create new
+    instances of YtObject and automatically append them to the
+    displayed list. Selected objects on the list will serve as the source
+    for an frb displayed in another widget.
+
+    Parameters
+    ----------
+    dataObjects : List
+        The list of YtObjects currently in the namespace of the program.
+    activeDataObject : String
+        The name of which object in the `dataObjects` list is currently
+        selected by the user. Initially it is None.
+    label : QtGui.QLabel
+        This label is present to clearly identify what the contents of the
+        `dataObjectListWidget` are for users.
+    dataObjectListWidget : QtGui.QListWidget
+        The widget which displays all items in `dataObjects`
+    passToViewButton : QtGui.QPushButton
+        A button that when clicked will trigger the creation of an frb from
+        the dataset given by `activeDataObject`, and then instruct the system
+        to display that frb in the main window. This functionality is
+        implemented in viewyt.py due to its interaction between main level
+        widgets.
+    layout : QtGui.QVBoxLayout
+        The layout for this widget, which is a vertical stack of widgets."""
     def __init__(self):
+        r"""Creates an instance of AcquisitionActiveW.
+
+        This function instantiates all parameters of the class and sets the
+        layout of the widget. It then shows the widget onscreen."""""
         super(AcquisitionActiveW, self).__init__()
         self.dataObjects = []
         self.activeDataObject = None
@@ -388,23 +442,50 @@ class AcquisitionActiveW(QtGui.QWidget):
         self.show()
 
     def add_data_object(self, dataObject):
+        r"""Adds an object to the `dataObjects` list.
+
+        This function assumes that the input is of type YtObject, and then
+        passes that object to the list of dataObjects known to the widget.
+
+        Parameters
+        ----------
+        dataObject : YtObject
+            The object to be added to the `dataObjects`."""
         self.dataObjects.append(dataObject)
         self.set_ObjectListWidget()
 
     def add_data_object_from_file(self, filename):
-        print filename
+        r"""Creates a YtObject and then adds that object to `dataObjects`
+
+        Parameters
+        ----------
+        filename : string
+            The name of a file that could be loaded with yt. If the file
+            cannot be loaded, an exception is thrown by yt but the app
+            will still run."""
         tempObj = YtObject(filename)
         self.add_data_object(tempObj)
 
     def set_active_DataObject(self):
+        r"""Selects the the YtObject corresponding to the name of the
+        selected object in the `dataObjectListWidget`."""
         for x in self.dataObjects:
             if x.name == self.dataObjectListWidget.currentItem().text():
                 self.activeDataObject = x
 
     def get_active_DataObject(self):
+        r"""Gets the current `activeDataObject`.
+
+        Returns
+        -------
+        YtObject
+            The object that is currently selected in the
+            `dataObjectListWidget`"""
         return self.activeDataObject
 
     def set_ObjectListWidget(self):
+        r"""A function for managing the initialization and maintenance of the
+        `dataObjectListWidget`."""
         self.dataObjectListWidget.clear()
         for x in self.dataObjects:
             listWidgetItem = QtGui.QListWidgetItem()
@@ -414,8 +495,30 @@ class AcquisitionActiveW(QtGui.QWidget):
 
 
 class AcquisitionMasterW(QtGui.QWidget):
+    r"""The highest level widget for data acquisition.
+
+    This widget combines an instance of `AcquisitionSourceW` and
+    `AcquisitionActiveW` to create a single unified widget. It also connects
+    the two widgets, enabling a file from `AcquisitionSourceW` to be loaded
+    and passed to `AcquisitionActiveW`.
+
+    Parameters
+    ----------
+    sourceW : AcquisitionSourceW
+        The widget that manages the sources of data.
+    activeW : AcquisitionActiveW
+        The widget that manages currently loaded data from all sources.
+    layout : QtGui.QVBoxLayout
+        The layout for the instance of `AcquisitionMasterW`"""
 
     def __init__(self):
+        r"""Instantiates all class parameters, and then shows the widget
+        representation of the class.
+
+        This function takes care of initializing all class parameters and then
+        connects the load button of `sourceW` to the load_to_activeW function,
+        this is what enables files to be loaded into the app as a data object
+        by yt."""
         super(AcquisitionMasterW, self).__init__()
         self.sourceW = AcquisitionSourceW()
         self.activeW = AcquisitionActiveW()
@@ -429,12 +532,16 @@ class AcquisitionMasterW(QtGui.QWidget):
         self.show()
 
     def load_to_activeW(self):
+        r"""Grabs the current selected file in `sourceW` and attempts to load
+        it with yt before passing it as a YtObject to the `activeW`."""
         selectedFile = self.sourceW.fileTreeWidget.currentItem().text(0)
         selectedFile = str(selectedFile)
         self.activeW.add_data_object_from_file(selectedFile)
 
 
 def main():
+    r"""A utility function for testing any changes to this module without
+    starting the entire application."""
     app = QtGui.QApplication(sys.argv)
     AcquisitionMasterW()
     sys.exit(app.exec_())
