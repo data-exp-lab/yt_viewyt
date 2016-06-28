@@ -1,5 +1,6 @@
 import yt
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt4agg \
+    import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 class YtView(object):
