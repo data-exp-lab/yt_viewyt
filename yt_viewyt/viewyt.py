@@ -19,19 +19,18 @@ class ViewYt(QtGui.QWidget):
         super(ViewYt, self).__init__()
         self.acquisitionWidget = AcquisitionMasterW()
 
-        self.viewWidget = QtGui.QMainWindow()
-
-        self.subWidget = QtGui.QLabel("Welcome to ViewYT!")
-        self.subWidget.resize(512, 512)
-        self.viewWidget.setCentralWidget(self.subWidget)
+        self.viewWidget = QtGui.QMdiArea()
+        self.viewWidget.tileSubWindows()
+        self.viewWidget.addSubWindow(QtGui.QLabel("Welcome to ViewYT"))
+        self.viewWidget.resize(512, 512)
 
         self.ipythonWidget = QIPythonWidget()
 
-        tempWidget = QtGui.QWidget()
-        tempLayout = QtGui.QVBoxLayout()
-        tempLayout.addWidget(self.viewWidget)
-        tempLayout.addWidget(self.ipythonWidget)
-        tempWidget.setLayout(tempLayout)
+        comboWidget = QtGui.QWidget()
+        comboLayout = QtGui.QVBoxLayout()
+        comboLayout.addWidget(self.viewWidget)
+        comboLayout.addWidget(self.ipythonWidget)
+        comboWidget.setLayout(comboLayout)
 
         self.acquisitionWidget.activeW.passToViewButton.clicked.connect(
             self.pass_to_view)
@@ -43,7 +42,7 @@ class ViewYt(QtGui.QWidget):
         self.layout = QtGui.QHBoxLayout()
         self.layout.addWidget(self.acquisitionWidget)
         self.layout.addWidget(self.hideAcquisitionB)
-        self.layout.addWidget(tempWidget)
+        self.layout.addWidget(comboWidget)
         self.setLayout(self.layout)
 
         self.show()
@@ -54,9 +53,14 @@ class ViewYt(QtGui.QWidget):
         selected_data = self.acquisitionWidget.activeW.get_active_DataObject()
         selected_data = selected_data.data
         plot = FrbView(selected_data)
-        plot = plot.get_plot()
-        self.viewWidget.setCentralWidget(plot)
-        self.viewWidget.resize(512, 512)
+        plotW = plot.get_plot()
+        plotW.setSizePolicy(QtGui.QSizePolicy.Expanding,
+                            QtGui.QSizePolicy.Expanding)
+        plotW.setContentsMargins(0, 0, 0, 0)
+        plotW.updateGeometry()
+        self.viewWidget.addSubWindow(plotW)
+        for x in self.viewWidget.subWindowList():
+            x.show()
         self.show()
 
     def hide_acquisition(self):

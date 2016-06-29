@@ -1,4 +1,5 @@
 import yt
+from PyQt4 import QtCore
 from matplotlib.backends.backend_qt4agg \
     import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -54,7 +55,7 @@ class FrbView(object):
     def __init__(self, ds, sa="x", nv=None, d=0.5):
         r"""Initializes an frb view that defaults to slicing through the x
         axis at the center of the dataset."""
-
+        self.ds = ds
         self.sa = sa
         self.nv = nv
         self.d = d
@@ -62,13 +63,29 @@ class FrbView(object):
         if type(self.sa) == str:
             if self.sa == 'x':
                 self.s = ds.r[0.5, :, :]
-                self.frb = self.s.to_frb(1.0, 1024)
-                field = self.frb["density"].ndarray_view()
-                fig = Figure(figsize=(5, 4), dpi=100)
-                ax = fig.add_subplot(111)
-                ax.imshow(field)
-                self.plot = FigureCanvas(fig)
+        self.frb = self.s.to_frb(1.0, 1024)
+        field = self.frb["density"].ndarray_view()
+        self.fig = Figure(figsize=(5, 4), dpi=100)
+        self.ax = self.fig.add_subplot(111)
+        self.ax.imshow(field)
+        self.plot = FigureCanvas(self.fig)
+        self.plot.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.plot.setFocus()
+        self.plot.mpl_connect('key_press_event', self.canvas_zoom)
 
     def get_plot(self):
         r"""return the view plot"""
         return self.plot
+
+    def canvas_zoom(self, event):
+        if event.button != 1:
+            return
+        print "signal fired"
+        x, y = event.xdata, event.ydata
+        self.ax.set_xlim(x - 0.1, x + 0.1)
+        self.ax.set_ylim(y - 0.1, y + 0.1)
+        self.fig.canvas.draw()
+        self.plot = FigureCanvas(self.fig)
+        self.plot.show()
+
+
