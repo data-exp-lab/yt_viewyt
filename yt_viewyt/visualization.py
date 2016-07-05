@@ -31,26 +31,30 @@ class MplCanvas(FigureCanvas):
         self.ax = self.fig.add_subplot(111, xlim=(0, 1024), ylim=(0, 1024))
 
         FigureCanvas.__init__(self, self.fig)
-        FigureCanvas.setSizePolicy(self, QtGui.QSizePolicy.Expanding,
-                                   QtGui.QSizePolicy.Expanding)
-        FigureCanvas.updateGeometry(self)
 
-        self.fig.canvas.mpl_connect('button_press_event', self.zoom)
-        self.fig.canvas.mpl_connect('key_press_event', self.on_press)
+        self.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.setFocus()
+
+        self.fig.canvas.mpl_connect('key_press_event', self.zoom)
 
     def zoom(self, event):
-        if event.button != 1:
-            return
-        x, y = event.xdata, event.ydata
-        self.ax.set_xlim(x - 128, x + 128)
-        self.ax.set_ylim(y - 128, y + 128)
-        self.draw()
 
-    def on_press(self, event):
-        print event.key
+        if event.key == "i":
+            a = self.ax.get_xlim()
+            b = self.ax.get_ylim()
+            self.ax.set_xlim(0.25 * a[0], 0.25 * a[1])
+            self.ax.set_ylim(0.25 * b[0], 0.25 * b[1])
+            self.draw()
+
+        if event.key == 'o':
+            a = self.ax.get_xlim()
+            b = self.ax.get_ylim()
+            self.ax.set_xlim(4 * a[0], 4 * a[1])
+            self.ax.set_ylim(4 * b[0], 4 * b[1])
+            self.draw()
 
 
-class FrbView(object):
+class FrbView(MplCanvas):
     r""""The view displaying data as an FRB.
 
     This is the first view to be loaded when a data object is called to view,
@@ -83,6 +87,10 @@ class FrbView(object):
         r"""Initializes an frb view that defaults to slicing through the x
         axis at the center of the dataset."""
 
+        super(FrbView, self).__init__()
+        self.fig.canvas.mpl_connect('key_press_event', self.pan)
+        self.fig.canvas.mpl_connect('key_press_event', self.upgrade)
+
         if nv is not None:
             self.s = ds.cutting(nv, c)
         if type(sa) == str:
@@ -93,13 +101,73 @@ class FrbView(object):
             if sa == 'z':
                 self.s = ds.r[:, 0.5, :]
 
-        self.frb = self.s.to_frb(1.0, 1024)
-        field = self.frb[field].ndarray_view()
-        self.plot = MplCanvas()
-        self.plot.setFocusPolicy(QtCore.Qt.ClickFocus)
-        self.plot.setFocus()
-        self.plot.ax.imshow(field)
+        self.current_field = field
+        self.frb = self.s.to_frb(1.0, 1024, periodic=True)
+        field = self.frb[self.current_field].ndarray_view()
+        self.ax.imshow(field)
 
     def get_plot(self):
         r"""return the view plot"""
-        return self.plot
+        return self
+
+    def pan(self, event):
+
+        if event.key == "j":
+            a = self.ax.get_ylim()
+            dy = (a[1] - a[0]) / 2.0
+            self.ax.set_ylim(a[0] - dy, a[1] - dy)
+            self.draw()
+
+        if event.key == "k":
+            a = self.ax.get_ylim()
+            dy = (a[1] - a[0]) / 2.0
+            self.ax.set_ylim(a[0] + dy, a[1] + dy)
+            self.draw()
+
+        if event.key == "h":
+            a = self.ax.get_xlim()
+            dx = (a[1] - a[0]) / 2.0
+            self.ax.set_xlim(a[0] - dx, a[1] - dx)
+            self.draw()
+
+        if event.key == "l":
+            a = self.ax.get_xlim()
+            dx = (a[1] - a[0]) / 2.0
+            self.ax.set_xlim(a[0] + dx, a[1] + dx)
+            self.draw()
+
+    def upgrade(self, event):
+
+        if event.key == "u":
+            a = self.ax.get_ylim()
+            b = self.ax.get_xlim()
+            xmin = (1.0 / self.frb.convert_distance_x(1.0)) * a[0]
+            xmax = (1.0 / self.frb.convert_distance_x(1.0)) * a[1]
+            ymin = (1.0 / self.frb.convert_distance_y(1.0)) * b[0]
+            ymax = (1.0 / self.frb.convert_distance_y(1.0)) * b[1]
+
+            ds = self.s.ds
+
+            axis = self.s.axis
+
+            coord = self.s.coord
+
+            if axis == 0:
+                self.s = ds.r[coord, xmin:xmax, ymin:ymax]
+
+            if axis == 1:
+                self.s = ds.r[xmin:xmax, coord, ymin:ymax]
+
+            if axis == 2:
+                self.s = ds.r[xmin:xmax, ymin:ymax, coord]
+
+            self.frb = self.s.to_frb(xmax - xmin, 1024, periodic=True)
+
+            field = self.frb[self.current_field].ndarray_view()
+
+            self.ax.cla()
+            self.ax.imshow(field)
+            self.ax.set_xlim(0, 1024)
+            self.ax.set_ylim(0, 1024)
+
+            self.show()
