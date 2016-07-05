@@ -1,5 +1,5 @@
 import os
-os.environ['QT_API'] = 'pyqt'
+os.environ["QT_API"] = 'pyqt'
 import sip
 sip.setapi("QString", 2)
 sip.setapi("QVariant", 2)
@@ -9,8 +9,6 @@ from PyQt4 import QtGui, QtCore
 from acquisition import AcquisitionMasterW
 from visualization import FrbView
 from console import QIPythonWidget
-from manipulation import LocationWidget
-import matplotlib
 
 
 class ViewYt(QtGui.QWidget):
