@@ -1,3 +1,4 @@
+import numpy as np
 from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg \
     import FigureCanvasQTAgg as FigureCanvas
@@ -42,15 +43,23 @@ class MplCanvas(FigureCanvas):
         if event.key == "i":
             a = self.ax.get_xlim()
             b = self.ax.get_ylim()
-            self.ax.set_xlim(0.25 * a[0], 0.25 * a[1])
-            self.ax.set_ylim(0.25 * b[0], 0.25 * b[1])
+            center_x = (a[0] + a[1])/2.0
+            width_x = (a[1] - a[0])
+            center_y = (b[0] + b[1])/2.0
+            width_y = (b[1] - b[0])
+            self.ax.set_xlim(center_x - width_x/2.0, center_x + width_x/2.0)
+            self.ax.set_ylim(center_y - width_y/2.0, center_y + width_y/2.0)
             self.draw()
 
         if event.key == 'o':
             a = self.ax.get_xlim()
             b = self.ax.get_ylim()
-            self.ax.set_xlim(4 * a[0], 4 * a[1])
-            self.ax.set_ylim(4 * b[0], 4 * b[1])
+            center_x = (a[0] + a[1])/2.0
+            width_x = (a[1] - a[0])
+            center_y = (b[0] + b[1])/2.0
+            width_y = (b[1] - b[0])
+            self.ax.set_xlim(center_x - width_x*2.0, center_x + width_x*2.0)
+            self.ax.set_ylim(center_y - width_y*2.0, center_y + width_y*2.0)
             self.draw()
 
 
@@ -103,7 +112,7 @@ class FrbView(MplCanvas):
 
         self.current_field = field
         self.frb = self.s.to_frb(1.0, 1024, periodic=True)
-        field = self.frb[self.current_field].ndarray_view()
+        field = np.log10(self.frb[self.current_field].ndarray_view())
         self.ax.imshow(field)
 
     def get_plot(self):
@@ -163,7 +172,7 @@ class FrbView(MplCanvas):
 
             self.frb = self.s.to_frb(xmax - xmin, 1024, periodic=True)
 
-            field = self.frb[self.current_field].ndarray_view()
+            field = np.log10(self.frb[self.current_field].ndarray_view())
 
             self.ax.cla()
             self.ax.imshow(field)
