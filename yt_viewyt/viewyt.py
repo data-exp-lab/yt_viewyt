@@ -6,8 +6,9 @@ sip.setapi("QVariant", 2)
 import sys
 import StringIO
 from PyQt4 import QtGui, QtCore
+from PyQt4.QtCore import pyqtSlot
 from acquisition import AcquisitionMasterW
-from visualization import FrbView
+from visualization import ViewWidget
 from console import QIPythonWidget
 
 
@@ -17,16 +18,15 @@ class ViewYt(QtGui.QWidget):
         super(ViewYt, self).__init__()
         self.acquisitionWidget = AcquisitionMasterW()
 
-        self.viewWidget = QtGui.QMdiArea()
-        self.viewWidget.tileSubWindows()
-        self.viewWidget.addSubWindow(QtGui.QLabel("Welcome to ViewYT"))
-        self.viewWidget.resize(512, 512)
+        self.view_widget = ViewWidget()
+
+        self.view_widget.enough_windows[bool].connect(self.show_link_button)
 
         self.ipythonWidget = QIPythonWidget()
 
         comboWidget = QtGui.QWidget()
         comboLayout = QtGui.QVBoxLayout()
-        comboLayout.addWidget(self.viewWidget)
+        comboLayout.addWidget(self.view_widget)
         comboLayout.addWidget(self.ipythonWidget)
         comboWidget.setLayout(comboLayout)
 
@@ -37,10 +37,16 @@ class ViewYt(QtGui.QWidget):
         self.hideAcquisitionB.setFixedSize(20, self.size().height())
         self.hideAcquisitionB.clicked.connect(self.hide_acquisition)
 
+        self.link_button = QtGui.QPushButton('link views')
+        self.link_button.clicked.connect(
+            self.view_widget.make_standard_frb_link)
+        self.link_button.setHidden(True)
+
         self.layout = QtGui.QHBoxLayout()
         self.layout.addWidget(self.acquisitionWidget)
         self.layout.addWidget(self.hideAcquisitionB)
         self.layout.addWidget(comboWidget)
+        self.layout.addWidget(self.link_button)
         self.setLayout(self.layout)
 
         self.show()
@@ -50,16 +56,7 @@ class ViewYt(QtGui.QWidget):
     def pass_to_view(self):
         selected_data = self.acquisitionWidget.activeW.get_active_DataObject()
         selected_data = selected_data.data
-        plot = FrbView(selected_data)
-        plotW = plot.get_plot()
-        plotW.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                            QtGui.QSizePolicy.Expanding)
-        plotW.setContentsMargins(0, 0, 0, 0)
-        plotW.updateGeometry()
-        self.viewWidget.addSubWindow(plotW)
-        for x in self.viewWidget.subWindowList():
-            x.show()
-        self.show()
+        self.view_widget.add_frb_view(selected_data)
 
     def hide_acquisition(self):
         if not self.acquisitionWidget.isHidden():
@@ -68,6 +65,11 @@ class ViewYt(QtGui.QWidget):
         else:
             self.acquisitionWidget.setHidden(False)
             self.hideAcquisitionB.setText('<<')
+
+    @pyqtSlot(bool)
+    def show_link_button(self, val):
+        if val:
+            self.link_button.setHidden(False)
 
 
 def main():
