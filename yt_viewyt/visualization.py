@@ -24,7 +24,6 @@ class YtView(object):
     def get_plot(self):
         return self.plot
 
-
 class MplCanvas(FigureCanvas):
 
     def __init__(self):
@@ -35,33 +34,15 @@ class MplCanvas(FigureCanvas):
 
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.setFocus()
+        self.events = {'i': self.zoomin,
+                       'o': self.zoomout}
+        self.setup_events()
 
-        self.fig.canvas.mpl_connect('key_press_event', self.zoom)
-
-    def zoom(self, event):
-
-        if event.key == "i":
-            a = self.ax.get_xlim()
-            b = self.ax.get_ylim()
-            center_x = (a[0] + a[1])/2.0
-            width_x = (a[1] - a[0])
-            center_y = (b[0] + b[1])/2.0
-            width_y = (b[1] - b[0])
-            self.ax.set_xlim(center_x - width_x/2.0, center_x + width_x/2.0)
-            self.ax.set_ylim(center_y - width_y/2.0, center_y + width_y/2.0)
-            self.draw()
-
-        if event.key == 'o':
-            a = self.ax.get_xlim()
-            b = self.ax.get_ylim()
-            center_x = (a[0] + a[1])/2.0
-            width_x = (a[1] - a[0])
-            center_y = (b[0] + b[1])/2.0
-            width_y = (b[1] - b[0])
-            self.ax.set_xlim(center_x - width_x*2.0, center_x + width_x*2.0)
-            self.ax.set_ylim(center_y - width_y*2.0, center_y + width_y*2.0)
-            self.draw()
-
+    def setup_events(self):
+        def filter_events(event):
+            if event.key not in self.events: return
+            return self.events[event.key](event)
+        self.fig.canvas.mpl_connect('key_press_event', filter_events)
 
 class FrbView(MplCanvas):
     r""""The view displaying data as an FRB.
@@ -97,9 +78,10 @@ class FrbView(MplCanvas):
         axis at the center of the dataset."""
 
         super(FrbView, self).__init__()
-        self.fig.canvas.mpl_connect('key_press_event', self.pan)
-        self.fig.canvas.mpl_connect('key_press_event', self.upgrade)
-
+        self.events.update({'j': self.pan_down,
+                            'k': self.pan_up,
+                            'h': self.pan_left,
+                            'l': self.pan_right})
         if nv is not None:
             self.s = ds.cutting(nv, c)
         if type(sa) == str:
@@ -114,36 +96,57 @@ class FrbView(MplCanvas):
         self.frb = self.s.to_frb(1.0, 1024, periodic=True)
         field = np.log10(self.frb[self.current_field].ndarray_view())
         self.ax.imshow(field)
+        self.setup_events()
 
     def get_plot(self):
         r"""return the view plot"""
         return self
 
-    def pan(self, event):
+    def pan_down(self, event):
+        a = self.ax.get_ylim()
+        dy = (a[1] - a[0]) / 2.0
+        self.ax.set_ylim(a[0] - dy, a[1] - dy)
+        self.draw()
 
-        if event.key == "j":
-            a = self.ax.get_ylim()
-            dy = (a[1] - a[0]) / 2.0
-            self.ax.set_ylim(a[0] - dy, a[1] - dy)
-            self.draw()
+    def pan_up(self, event):
+        a = self.ax.get_ylim()
+        dy = (a[1] - a[0]) / 2.0
+        self.ax.set_ylim(a[0] + dy, a[1] + dy)
+        self.draw()
 
-        if event.key == "k":
-            a = self.ax.get_ylim()
-            dy = (a[1] - a[0]) / 2.0
-            self.ax.set_ylim(a[0] + dy, a[1] + dy)
-            self.draw()
+    def pan_left(self, event):
+        a = self.ax.get_xlim()
+        dx = (a[1] - a[0]) / 2.0
+        self.ax.set_xlim(a[0] - dx, a[1] - dx)
+        self.draw()
 
-        if event.key == "h":
-            a = self.ax.get_xlim()
-            dx = (a[1] - a[0]) / 2.0
-            self.ax.set_xlim(a[0] - dx, a[1] - dx)
-            self.draw()
+    def pan_right(self, event):
+        a = self.ax.get_xlim()
+        dx = (a[1] - a[0]) / 2.0
+        self.ax.set_xlim(a[0] + dx, a[1] + dx)
+        self.draw()
 
-        if event.key == "l":
-            a = self.ax.get_xlim()
-            dx = (a[1] - a[0]) / 2.0
-            self.ax.set_xlim(a[0] + dx, a[1] + dx)
-            self.draw()
+    def zoomin(self, event):
+        a = self.ax.get_xlim()
+        b = self.ax.get_ylim()
+        center_x = (a[0] + a[1])/2.0
+        width_x = (a[1] - a[0])
+        center_y = (b[0] + b[1])/2.0
+        width_y = (b[1] - b[0])
+        self.ax.set_xlim(center_x - width_x/2.0, center_x + width_x/2.0)
+        self.ax.set_ylim(center_y - width_y/2.0, center_y + width_y/2.0)
+        self.draw()
+
+    def zoomout(self, event):
+        a = self.ax.get_xlim()
+        b = self.ax.get_ylim()
+        center_x = (a[0] + a[1])/2.0
+        width_x = (a[1] - a[0])
+        center_y = (b[0] + b[1])/2.0
+        width_y = (b[1] - b[0])
+        self.ax.set_xlim(center_x - width_x*2.0, center_x + width_x*2.0)
+        self.ax.set_ylim(center_y - width_y*2.0, center_y + width_y*2.0)
+        self.draw()
 
     def upgrade(self, event):
 
