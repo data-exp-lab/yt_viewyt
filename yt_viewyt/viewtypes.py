@@ -1,34 +1,33 @@
 import numpy as np
 import matplotlib
-from matplotlib.colors import Normalize
 from matplotlib.figure import Figure
 
-backend_dic = {'GTK': 'matplotlib.backends.backend_gtk.FigureCanvasGTK',
-               'GTKAgg': 'matplotlib.backends.backend_gtkagg.FigureCanvasGTKAgg',
-               'GTKCairo': 'matplotlib.backends.backend_gtkcairo.FigureCanvasGTKCairo',
-               'MacOSX': 'matplotlib.backends.backend_macosx.FigureCanvasMac',
-               'Qt4Agg': 'matplotlib.backends.backend_qt4agg.FigureCanvasQTAgg',
-               'Qt5Agg': 'matplotlib.backends.backend_gt5agg.FigureCanvasQTAgg',
-               'TkAgg': 'matplotlib.backends.backend_tkagg.FigureCanvasTkAgg',
-               'WX': 'matplotlib.backends.backend_wx.FigureCanvasWx',
-               'WXAgg': 'matplotlib.backends.backend_wxagg.FigureCanvasWxAgg',
-               'GTK3Cairo': 'matplotlib.backends.backend_gtk3cairo.FigureCanvasGTK3Cairo',
-               'GTK3Agg': 'matplotlib.backends.backend_gtk3agg.FigureCanvasGTK3Agg',
-               'WebAgg': 'matplotlib.backends.backend_webagg.FigureCanvasWebAgg',
-               'nbAgg': 'matplotlib.backends.backend_nbagg.FigureCanvasNbAgg'}
+backend_dic = {'GTK': ['matplotlib.backends.backend_gtk', 'FigureCanvasGTK'],
+               'GTKAgg': ['matplotlib.backends.backend_gtkagg', 'FigureCanvasGTKAgg'],
+               'GTKCairo': ['matplotlib.backends.backend_gtkcairo', 'FigureCanvasGTKCairo'],
+               'MacOSX': ['matplotlib.backends.backend_macosx' ,'FigureCanvasMac'],
+               'Qt4Agg': ['matplotlib.backends.backend_qt4agg', 'FigureCanvasQTAgg'],
+               'Qt5Agg': ['matplotlib.backends.backend_gt5agg', 'FigureCanvasQTAgg'],
+               'TkAgg': ['matplotlib.backends.backend_tkagg', 'FigureCanvasTkAgg'],
+               'WX': ['matplotlib.backends.backend_wx', 'FigureCanvasWx'],
+               'WXAgg': ['matplotlib.backends.backend_wxagg', 'FigureCanvasWxAgg'],
+               'GTK3Cairo': ['matplotlib.backends.backend_gtk3cairo', 'FigureCanvasGTK3Cairo'],
+               'GTK3Agg': ['matplotlib.backends.backend_gtk3agg', 'FigureCanvasGTK3Agg'],
+               'WebAgg': ['matplotlib.backends.backend_webagg', 'FigureCanvasWebAgg'],
+               'nbAgg': ['matplotlib.backends.backend_nbagg', 'FigureCanvasNbAgg']}
 
 
 def set_canvas():
     dic = backend_dic
-    backend = matplotlib.get_backend()
-    for key in backend_dic.keys():
+    backend = str(matplotlib.get_backend())
+    for key in dic.keys():
         if key == backend:
-            FC = unicode(dic[key])
-            print FC
-            import FC as FigureCanvas
+            mod = __import__(dic[key][0], fromlist=[dic[key][1]])
+            FigureCanvas = getattr(mod, dic[key][1])
             return FigureCanvas
 
 FigureCanvas = set_canvas()
+
 
 class MplCanvas(FigureCanvas):
 
@@ -37,10 +36,6 @@ class MplCanvas(FigureCanvas):
         self.ax = self.fig.add_subplot(111, xlim=(0, 1024), ylim=(0, 1024))
 
         FigureCanvas.__init__(self, self.fig)
-
-    def set_canvas():
-        dic = backend_dic
-        backend = matplotlib.get_backend()
 
 
 class FrbView(MplCanvas):
@@ -92,7 +87,7 @@ class FrbView(MplCanvas):
         self.frb = self.s.to_frb(1.0, 1024, periodic=True)
         field = np.log10(self.frb[self.current_field].ndarray_view())
         self.ax.imshow(field)
-        self.draw()
+        self.show()
 
     def get_plot(self):
         r"""return the view plot"""
