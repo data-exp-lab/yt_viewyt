@@ -1,9 +1,34 @@
 import numpy as np
-from PyQt4 import QtGui, QtCore
-from matplotlib.backends.backend_qt4agg \
-    import FigureCanvasQTAgg as FigureCanvas
+import matplotlib
+from matplotlib.colors import Normalize
 from matplotlib.figure import Figure
 
+backend_dic = {'GTK': 'matplotlib.backends.backend_gtk.FigureCanvasGTK',
+               'GTKAgg': 'matplotlib.backends.backend_gtkagg.FigureCanvasGTKAgg',
+               'GTKCairo': 'matplotlib.backends.backend_gtkcairo.FigureCanvasGTKCairo',
+               'MacOSX': 'matplotlib.backends.backend_macosx.FigureCanvasMac',
+               'Qt4Agg': 'matplotlib.backends.backend_qt4agg.FigureCanvasQTAgg',
+               'Qt5Agg': 'matplotlib.backends.backend_gt5agg.FigureCanvasQTAgg',
+               'TkAgg': 'matplotlib.backends.backend_tkagg.FigureCanvasTkAgg',
+               'WX': 'matplotlib.backends.backend_wx.FigureCanvasWx',
+               'WXAgg': 'matplotlib.backends.backend_wxagg.FigureCanvasWxAgg',
+               'GTK3Cairo': 'matplotlib.backends.backend_gtk3cairo.FigureCanvasGTK3Cairo',
+               'GTK3Agg': 'matplotlib.backends.backend_gtk3agg.FigureCanvasGTK3Agg',
+               'WebAgg': 'matplotlib.backends.backend_webagg.FigureCanvasWebAgg',
+               'nbAgg': 'matplotlib.backends.backend_nbagg.FigureCanvasNbAgg'}
+
+
+def set_canvas():
+    dic = backend_dic
+    backend = matplotlib.get_backend()
+    for key in backend_dic.keys():
+        if key == backend:
+            FC = unicode(dic[key])
+            print FC
+            import FC as FigureCanvas
+            return FigureCanvas
+
+FigureCanvas = set_canvas()
 
 class MplCanvas(FigureCanvas):
 
@@ -13,8 +38,9 @@ class MplCanvas(FigureCanvas):
 
         FigureCanvas.__init__(self, self.fig)
 
-        self.setFocusPolicy(QtCore.Qt.ClickFocus)
-        self.setFocus()
+    def set_canvas():
+        dic = backend_dic
+        backend = matplotlib.get_backend()
 
 
 class FrbView(MplCanvas):
@@ -66,7 +92,7 @@ class FrbView(MplCanvas):
         self.frb = self.s.to_frb(1.0, 1024, periodic=True)
         field = np.log10(self.frb[self.current_field].ndarray_view())
         self.ax.imshow(field)
-        self.show()
+        self.draw()
 
     def get_plot(self):
         r"""return the view plot"""
@@ -143,9 +169,9 @@ class FrbView(MplCanvas):
             if axis == 2:
                 self.s = ds.r[xmin:xmax, ymin:ymax, coord]
 
-            self.frb = self.s.to_frb(1.0, 1024, periodic=True)
+            self.frb = self.s.to_frb(xmax - xmin, 1024, periodic=True)
 
-            field = self.frb[self.current_field].ndarray_view()
+            field = np.log10(self.frb[self.current_field].ndarray_view())
 
             self.ax.clear()
             self.ax.imshow(field)

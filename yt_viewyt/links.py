@@ -9,10 +9,8 @@ class EventBus(object):
             return
         if type(self.events[event.key]) == list:
             for x in self.events[event.key]:
-                print type(x)
                 return x(event)
         else:
-            print type(self.events[event.key](event))
             return self.events[event.key](event)
 
     def subscribe(self, key, view_response):
@@ -36,6 +34,7 @@ class StandardFrbLink(EventBus):
             self.subscribe('j', y.pan_down)
             self.subscribe('k', y.pan_up)
             self.subscribe('l', y.pan_right)
+            self.subscribe('u', y.upgrade)
 
         for frb_view in frb_view_list:
             frb_view.fig.canvas.mpl_connect('key_press_event',
