@@ -1,20 +1,26 @@
 import numpy as np
 import matplotlib
 from matplotlib.figure import Figure
+from PyQt4 import QtCore
 
-backend_dic = {'GTK': ['backend_gtk', 'FigureCanvasGTK'],
+backend_dic = {'GTK': ['backend_gtk', 'FigureCanvasGTK',
+                       'FigureManagerGTK'],
                'GTKAgg': ['backend_gtkagg', 'FigureCanvasGTKAgg'],
                'GTKCairo': ['backend_gtkcairo', 'FigureCanvasGTKCairo'],
-               'MacOSX': ['backend_macosx' ,'FigureCanvasMac'],
+               'MacOSX': ['backend_macosx', 'FigureCanvasMac'],
                'Qt4Agg': ['backend_qt4agg', 'FigureCanvasQTAgg'],
                'Qt5Agg': ['backend_gt5agg', 'FigureCanvasQTAgg'],
                'TkAgg': ['backend_tkagg', 'FigureCanvasTkAgg'],
                'WX': ['backend_wx', 'FigureCanvasWx'],
                'WXAgg': ['backend_wxagg', 'FigureCanvasWxAgg'],
-               'GTK3Cairo': ['backend_gtk3cairo', 'FigureCanvasGTK3Cairo'],
-               'GTK3Agg': ['backend_gtk3agg', 'FigureCanvasGTK3Agg'],
+               'GTK3Cairo': ['backend_gtk3cairo',
+                             'FigureCanvasGTK3Cairo',
+                             'FigureManagerGTK3Cairo'],
+               'GTK3Agg': ['backend_gtk3agg', 'FigureCanvasGTK3Agg',
+                           'FigureManagerGTK3Agg'],
                'WebAgg': ['backend_webagg', 'FigureCanvasWebAgg'],
-               'nbAgg': ['backend_nbagg', 'FigureCanvasNbAgg']}
+               'nbAgg': ['backend_nbagg', 'FigureCanvasNbAgg',
+                         'FigureManagerNbAgg']}
 
 
 def set_canvas():
@@ -25,18 +31,35 @@ def set_canvas():
             mod = __import__('matplotlib.backends', globals(), locals(), [dic[key][0]], -1)
             submod = getattr(mod, dic[key][0])
             FigureCanvas = getattr(submod, dic[key][1])
-            return FigureCanvas
+            if len(dic[key]) > 2:
+                FigureManager = getattr(submod, dic[key][2])
+                return [FigureCanvas, FigureManager]
+            return [FigureCanvas]
 
-FigureCanvas = set_canvas()
 
+class MplCanvas(object):
 
-class MplCanvas(FigureCanvas):
-
-    def __init__(self):
+    def __init__(self, backend_Classes=set_canvas()):
+        super(MplCanvas, self).__init__()
         self.fig = Figure()
         self.ax = self.fig.add_subplot(111, xlim=(0, 1024), ylim=(0, 1024))
 
-        FigureCanvas.__init__(self, self.fig)
+        self.canvas = backend_Classes[0](self.fig)
+
+        print str(backend_Classes[0])
+        if len(backend_Classes) > 1:
+            self.manager = backend_Classes[1](self.Canvas, 1)
+
+        if str(backend_Classes[0]) == "<class" + \
+           " 'matplotlib.backends.backend_qt4agg.FigureCanvasQTAgg'>":
+            self.canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
+            self.canvas.setFocus()
+
+    def show(self):
+        try:
+            self.manager.show()
+        except AttributeError:
+            self.canvas.show()
 
 
 class FrbView(MplCanvas):
@@ -88,7 +111,7 @@ class FrbView(MplCanvas):
         self.frb = self.s.to_frb(1.0, 1024, periodic=True)
         field = np.log10(self.frb[self.current_field].ndarray_view())
         self.ax.imshow(field)
-        self.show()
+        self.canvas.show()
 
     def get_plot(self):
         r"""return the view plot"""
@@ -98,25 +121,25 @@ class FrbView(MplCanvas):
         a = self.ax.get_ylim()
         dy = (a[1] - a[0]) / 2.0
         self.ax.set_ylim(a[0] - dy, a[1] - dy)
-        self.draw()
+        self.canvas.draw()
 
     def pan_up(self, event):
         a = self.ax.get_ylim()
         dy = (a[1] - a[0]) / 2.0
         self.ax.set_ylim(a[0] + dy, a[1] + dy)
-        self.draw()
+        self.canvas.draw()
 
     def pan_left(self, event):
         a = self.ax.get_xlim()
         dx = (a[1] - a[0]) / 2.0
         self.ax.set_xlim(a[0] - dx, a[1] - dx)
-        self.draw()
+        self.canvas.draw()
 
     def pan_right(self, event):
         a = self.ax.get_xlim()
         dx = (a[1] - a[0]) / 2.0
         self.ax.set_xlim(a[0] + dx, a[1] + dx)
-        self.draw()
+        self.canvas.draw()
 
     def zoom_in(self, event):
         a = self.ax.get_xlim()
@@ -127,7 +150,7 @@ class FrbView(MplCanvas):
         width_y = (b[1] - b[0])
         self.ax.set_xlim(center_x - width_x/4.0, center_x + width_x/4.0)
         self.ax.set_ylim(center_y - width_y/4.0, center_y + width_y/4.0)
-        self.draw()
+        self.canvas.draw()
 
     def zoom_out(self, event):
         a = self.ax.get_xlim()
@@ -138,7 +161,7 @@ class FrbView(MplCanvas):
         width_y = (b[1] - b[0])
         self.ax.set_xlim(center_x - width_x*2.0, center_x + width_x*2.0)
         self.ax.set_ylim(center_y - width_y*2.0, center_y + width_y*2.0)
-        self.draw()
+        self.canvas.draw()
 
     def upgrade(self, event):
 
@@ -174,4 +197,4 @@ class FrbView(MplCanvas):
             self.ax.set_xlim(0, 1024)
             self.ax.set_ylim(0, 1024)
 
-            self.draw()
+            self.canvas.draw()

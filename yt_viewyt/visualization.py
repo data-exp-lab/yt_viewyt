@@ -18,7 +18,7 @@ class ViewWidget(QtGui.QMdiArea):
     def add_frb_view(self, data):
         plot = FrbView(data)
         window = QtGui.QMdiSubWindow()
-        window.setWidget(plot)
+        window.setWidget(plot.canvas)
         self.addSubWindow(window)
         self.links.append(StandardFrbLink([plot]))
         for x in self.subWindowList():

@@ -7,6 +7,8 @@ import sys
 import StringIO
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import pyqtSlot
+import matplotlib
+matplotlib.use('Qt4Agg')
 from acquisition import AcquisitionMasterW
 from visualization import ViewWidget
 from console import QIPythonWidget
