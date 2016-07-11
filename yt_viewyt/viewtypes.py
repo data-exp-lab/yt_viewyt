@@ -2,19 +2,19 @@ import numpy as np
 import matplotlib
 from matplotlib.figure import Figure
 
-backend_dic = {'GTK': ['matplotlib.backends.backend_gtk', 'FigureCanvasGTK'],
-               'GTKAgg': ['matplotlib.backends.backend_gtkagg', 'FigureCanvasGTKAgg'],
-               'GTKCairo': ['matplotlib.backends.backend_gtkcairo', 'FigureCanvasGTKCairo'],
-               'MacOSX': ['matplotlib.backends.backend_macosx' ,'FigureCanvasMac'],
-               'Qt4Agg': ['matplotlib.backends.backend_qt4agg', 'FigureCanvasQTAgg'],
-               'Qt5Agg': ['matplotlib.backends.backend_gt5agg', 'FigureCanvasQTAgg'],
-               'TkAgg': ['matplotlib.backends.backend_tkagg', 'FigureCanvasTkAgg'],
-               'WX': ['matplotlib.backends.backend_wx', 'FigureCanvasWx'],
-               'WXAgg': ['matplotlib.backends.backend_wxagg', 'FigureCanvasWxAgg'],
-               'GTK3Cairo': ['matplotlib.backends.backend_gtk3cairo', 'FigureCanvasGTK3Cairo'],
-               'GTK3Agg': ['matplotlib.backends.backend_gtk3agg', 'FigureCanvasGTK3Agg'],
-               'WebAgg': ['matplotlib.backends.backend_webagg', 'FigureCanvasWebAgg'],
-               'nbAgg': ['matplotlib.backends.backend_nbagg', 'FigureCanvasNbAgg']}
+backend_dic = {'GTK': ['backend_gtk', 'FigureCanvasGTK'],
+               'GTKAgg': ['backend_gtkagg', 'FigureCanvasGTKAgg'],
+               'GTKCairo': ['backend_gtkcairo', 'FigureCanvasGTKCairo'],
+               'MacOSX': ['backend_macosx' ,'FigureCanvasMac'],
+               'Qt4Agg': ['backend_qt4agg', 'FigureCanvasQTAgg'],
+               'Qt5Agg': ['backend_gt5agg', 'FigureCanvasQTAgg'],
+               'TkAgg': ['backend_tkagg', 'FigureCanvasTkAgg'],
+               'WX': ['backend_wx', 'FigureCanvasWx'],
+               'WXAgg': ['backend_wxagg', 'FigureCanvasWxAgg'],
+               'GTK3Cairo': ['backend_gtk3cairo', 'FigureCanvasGTK3Cairo'],
+               'GTK3Agg': ['backend_gtk3agg', 'FigureCanvasGTK3Agg'],
+               'WebAgg': ['backend_webagg', 'FigureCanvasWebAgg'],
+               'nbAgg': ['backend_nbagg', 'FigureCanvasNbAgg']}
 
 
 def set_canvas():
@@ -22,8 +22,9 @@ def set_canvas():
     backend = str(matplotlib.get_backend())
     for key in dic.keys():
         if key == backend:
-            mod = __import__(dic[key][0], fromlist=[dic[key][1]])
-            FigureCanvas = getattr(mod, dic[key][1])
+            mod = __import__('matplotlib.backends', globals(), locals(), [dic[key][0]], -1)
+            submod = getattr(mod, dic[key][0])
+            FigureCanvas = getattr(submod, dic[key][1])
             return FigureCanvas
 
 FigureCanvas = set_canvas()
