@@ -1,5 +1,5 @@
 """All classes associated with acquiring data for application"""
-
+import types
 import sys
 import os
 import yt
@@ -393,7 +393,7 @@ class ActiveObjectMenu(QtGui.QMenu):
         super(ActiveObjectMenu, self).__init__()
         self.parent = aParent
         self.addAction("New Data Object")
-        self.addAction("New Plot")
+        self.addAction("New Plot", self.get_plot_dialog)
         self.addAction("Remove", self.remove)
 
     def remove(self):
@@ -406,6 +406,18 @@ class ActiveObjectMenu(QtGui.QMenu):
         if self.parent.activeDataObject is not None:
             if self.parent.activeDataObject.name == item:
                 self.parent.activeDataObject = None
+
+    def get_plot_dialog(self):
+        def closeEvent(self, event):
+            self.deleteLater()
+            del(self.parent.plot_dialog)
+        self.plot_dialog = QtGui.QWidget()
+        self.plot_dialog.closeEvent = types.MethodType(closeEvent,
+                                                       self.plot_dialog,
+                                                       QtGui.QCloseEvent)
+        self.plot_dialog.parent = self
+        self.plot_dialog.show()
+
 
 
 class AcquisitionActiveW(QtGui.QWidget):
@@ -519,7 +531,8 @@ class AcquisitionActiveW(QtGui.QWidget):
             self.dataObjectListWidget.addItem(listWidgetItem)
 
     def on_context_menu(self, point):
-        self.popMenu.exec_(self.mapToGlobal(point))
+        if self.activeDataObject is not None:
+            self.popMenu.exec_(self.mapToGlobal(point))
 
 
 class AcquisitionMasterW(QtGui.QWidget):
