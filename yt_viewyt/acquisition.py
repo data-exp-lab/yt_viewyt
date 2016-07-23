@@ -3,7 +3,8 @@
 import sys
 import os
 import yt
-from PyQt4 import QtGui
+from PyQt4 import QtGui, \
+    QtCore
 
 
 class DirectoryObject(object):
@@ -386,6 +387,27 @@ class YtObject(object):
         return self.data
 
 
+class ActiveObjectMenu(QtGui.QMenu):
+
+    def __init__(self, aParent):
+        super(ActiveObjectMenu, self).__init__()
+        self.parent = aParent
+        self.addAction("New Data Object")
+        self.addAction("New Plot")
+        self.addAction("Remove", self.remove)
+
+    def remove(self):
+        row = self.parent.dataObjectListWidget.currentRow()
+        item = self.parent.dataObjectListWidget.currentItem()
+        trash = self.parent.dataObjectListWidget.takeItem(row)
+        del trash
+        self.parent.dataObjects = [x for x in self.parent.dataObjects if
+                                   x.name != item.text()]
+        if self.parent.activeDataObject is not None:
+            if self.parent.activeDataObject.name == item:
+                self.parent.activeDataObject = None
+
+
 class AcquisitionActiveW(QtGui.QWidget):
     r"""A widget displaying all user created instances of YtObject.
 
@@ -427,11 +449,15 @@ class AcquisitionActiveW(QtGui.QWidget):
         self.label = QtGui.QLabel("Active Data Objects")
 
         self.dataObjectListWidget = QtGui.QListWidget()
-        self.set_ObjectListWidget()
+        self.set_dataObjectListWidget()
         self.dataObjectListWidget.itemClicked.connect(
             self.set_active_DataObject)
 
         self.passToViewButton = QtGui.QPushButton("View")
+
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.popMenu = ActiveObjectMenu(self)
+        self.customContextMenuRequested.connect(self.on_context_menu)
 
         self.layout = QtGui.QVBoxLayout()
         self.layout.addWidget(self.label)
@@ -452,7 +478,7 @@ class AcquisitionActiveW(QtGui.QWidget):
         dataObject : YtObject
             The object to be added to the `dataObjects`."""
         self.dataObjects.append(dataObject)
-        self.set_ObjectListWidget()
+        self.set_dataObjectListWidget()
 
     def add_data_object_from_file(self, filename):
         r"""Creates a YtObject and then adds that object to `dataObjects`
@@ -483,15 +509,17 @@ class AcquisitionActiveW(QtGui.QWidget):
             `dataObjectListWidget`"""
         return self.activeDataObject
 
-    def set_ObjectListWidget(self):
+    def set_dataObjectListWidget(self):
         r"""A function for managing the initialization and maintenance of the
         `dataObjectListWidget`."""
         self.dataObjectListWidget.clear()
         for x in self.dataObjects:
             listWidgetItem = QtGui.QListWidgetItem()
             listWidgetItem.setText(x.name)
-            listWidgetItem.setIcon(QtGui.QIcon("icons/yt_icon.png"))
             self.dataObjectListWidget.addItem(listWidgetItem)
+
+    def on_context_menu(self, point):
+        self.popMenu.exec_(self.mapToGlobal(point))
 
 
 class AcquisitionMasterW(QtGui.QWidget):
