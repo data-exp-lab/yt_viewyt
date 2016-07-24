@@ -1,10 +1,10 @@
 """All classes associated with acquiring data for application"""
-import types
 import sys
 import os
-import yt
 from PyQt4 import QtGui, \
     QtCore
+from acquisition_sub_widgets import ActiveObjectMenu
+from acquisition_objects import YtFrontEndObject
 
 
 class DirectoryObject(object):
@@ -316,110 +316,6 @@ class AcquisitionSourceW(QtGui.QWidget):
             self.set_file_tree_widget()
 
 
-class YtObject(object):
-    r"""A basic representation of a data object loaded through yt.
-
-    This is the object that is used to track all objects that have been
-    loaded with yt or created by a method written in yt, like novel
-    data objects.
-
-    Parameters
-    -----------
-    data : yt.frontends object
-        The actual data object referenced by yt.
-
-    dataType : string
-        This parameter references whether the data loaded into yt is a dataset
-        series or a single data object. It will ultimately be used to determine
-        whether widgets that manipulate the time step of a view will be
-        available or not.
-
-    name : string
-        The name of the loaded object. It defaults to the name of the filename
-        in the case of a single data object.
-
-    Notes
-    ------
-    This is a weak class at the moment, and could utilize a lot of work.
-    Some improvements that could be made:
-    -Support for icons that distinguish what frontend yt is using, and if the
-    object is a single data object or a data series.
-    -Methods to create novel data objects from the initial file loaded, and to
-    name those novel objects
-    -Methods to save data objects
-    """
-
-    def __init__(self, fileName):
-        r"""Initializes an instance of the YtObject.
-
-        Specifically, this creates an instance of YtObject based on the type
-        of `fileName`. If it is a list, the initialization assumes a
-        data series.
-
-        Parameters
-        ----------
-        fileName : string or list of string
-            The name of the file from which the instance is being
-            initialized.
-
-        Returns
-        -------
-        self : YtObject"""
-        super(YtObject, self).__init__()
-
-        if isinstance(fileName, list):
-            self.data = yt.load(fileName)
-            self.dataType = "data set series"
-            self.name = "Needs Work"
-        else:
-            self.data = yt.load(fileName)
-            self.dataType = "dataset"
-            self.name = fileName
-
-    def get_data(self):
-        r"""Returns the yt data object for the given instance
-
-        Returns
-        -------
-        data : yt.frontend_like
-            The data from the instance of the YtObject.
-        """
-        return self.data
-
-
-class ActiveObjectMenu(QtGui.QMenu):
-
-    def __init__(self, aParent):
-        super(ActiveObjectMenu, self).__init__()
-        self.parent = aParent
-        self.addAction("New Data Object")
-        self.addAction("New Plot", self.get_plot_dialog)
-        self.addAction("Remove", self.remove)
-
-    def remove(self):
-        row = self.parent.dataObjectListWidget.currentRow()
-        item = self.parent.dataObjectListWidget.currentItem()
-        trash = self.parent.dataObjectListWidget.takeItem(row)
-        del trash
-        self.parent.dataObjects = [x for x in self.parent.dataObjects if
-                                   x.name != item.text()]
-        if self.parent.activeDataObject is not None:
-            if self.parent.activeDataObject.name == item:
-                self.parent.activeDataObject = None
-
-    def get_plot_dialog(self):
-        def closeEvent(self, event):
-            self.deleteLater()
-            del(self.parent.plot_dialog)
-        self.plot_dialog = QtGui.QWidget()
-        self.plot_dialog.closeEvent = types.MethodType(closeEvent,
-                                                       self.plot_dialog,
-                                                       QtGui.QCloseEvent)
-        self.plot_dialog.parent = self
-        self.plot_dialog.show()
-
-
-
 class AcquisitionActiveW(QtGui.QWidget):
     r"""A widget displaying all user created instances of YtObject.
 
@@ -455,26 +351,26 @@ class AcquisitionActiveW(QtGui.QWidget):
         This function instantiates all parameters of the class and sets the
         layout of the widget. It then shows the widget onscreen."""""
         super(AcquisitionActiveW, self).__init__()
-        self.dataObjects = []
-        self.activeDataObject = None
+        self.data_objects = []
+        self.active_data_object = None
 
         self.label = QtGui.QLabel("Active Data Objects")
 
-        self.dataObjectListWidget = QtGui.QListWidget()
-        self.set_dataObjectListWidget()
-        self.dataObjectListWidget.itemClicked.connect(
-            self.set_active_DataObject)
+        self.data_object_list_widget = QtGui.QTreeWidget()
+        self.set_data_object_list_widget()
+        self.data_object_list_widget.itemClicked.connect(
+            self.set_active_data_object)
 
-        self.passToViewButton = QtGui.QPushButton("View")
+        self.pass_to_view_button = QtGui.QPushButton("View")
 
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.popMenu = ActiveObjectMenu(self)
+        self.pop_menu = ActiveObjectMenu(self)
         self.customContextMenuRequested.connect(self.on_context_menu)
 
         self.layout = QtGui.QVBoxLayout()
         self.layout.addWidget(self.label)
-        self.layout.addWidget(self.dataObjectListWidget)
-        self.layout.addWidget(self.passToViewButton)
+        self.layout.addWidget(self.data_object_list_widget)
+        self.layout.addWidget(self.pass_to_view_button)
         self.setLayout(self.layout)
 
         self.show()
@@ -489,8 +385,8 @@ class AcquisitionActiveW(QtGui.QWidget):
         ----------
         dataObject : YtObject
             The object to be added to the `dataObjects`."""
-        self.dataObjects.append(dataObject)
-        self.set_dataObjectListWidget()
+        self.data_objects.append(dataObject)
+        self.set_data_object_list_widget()
 
     def add_data_object_from_file(self, filename):
         r"""Creates a YtObject and then adds that object to `dataObjects`
@@ -501,17 +397,17 @@ class AcquisitionActiveW(QtGui.QWidget):
             The name of a file that could be loaded with yt. If the file
             cannot be loaded, an exception is thrown by yt but the app
             will still run."""
-        tempObj = YtObject(filename)
+        tempObj = YtFrontEndObject(filename)
         self.add_data_object(tempObj)
 
-    def set_active_DataObject(self):
+    def set_active_data_object(self):
         r"""Selects the the YtObject corresponding to the name of the
         selected object in the `dataObjectListWidget`."""
-        for x in self.dataObjects:
-            if x.name == self.dataObjectListWidget.currentItem().text():
-                self.activeDataObject = x
+        for x in self.data_objects:
+            if x.name == self.data_object_list_widget.currentItem().text(0):
+                self.active_data_object = x
 
-    def get_active_DataObject(self):
+    def get_active_data_object(self):
         r"""Gets the current `activeDataObject`.
 
         Returns
@@ -519,20 +415,26 @@ class AcquisitionActiveW(QtGui.QWidget):
         YtObject
             The object that is currently selected in the
             `dataObjectListWidget`"""
-        return self.activeDataObject
+        return self.active_data_object
 
-    def set_dataObjectListWidget(self):
+    def set_data_object_list_widget(self):
         r"""A function for managing the initialization and maintenance of the
         `dataObjectListWidget`."""
-        self.dataObjectListWidget.clear()
-        for x in self.dataObjects:
-            listWidgetItem = QtGui.QListWidgetItem()
-            listWidgetItem.setText(x.name)
-            self.dataObjectListWidget.addItem(listWidgetItem)
+        self.data_object_list_widget.clear()
+
+        self.data_object_list_widget.setColumnCount(2)
+
+        self.data_object_list_widget.setHeaderLabels(['Object', 'Type'])
+
+        for x in self.data_objects:
+            tempItem = QtGui.QTreeWidgetItem(None)
+            tempItem.setText(0, x.name)
+            tempItem.setText(1, x.data_type)
+            self.data_object_list_widget.addTopLevelItem(tempItem)
 
     def on_context_menu(self, point):
-        if self.activeDataObject is not None:
-            self.popMenu.exec_(self.mapToGlobal(point))
+        if self.active_data_object is not None:
+            self.pop_menu.exec_(self.mapToGlobal(point))
 
 
 class AcquisitionMasterW(QtGui.QWidget):

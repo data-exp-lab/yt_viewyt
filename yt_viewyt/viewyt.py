@@ -32,7 +32,7 @@ class ViewYt(QtGui.QWidget):
         comboLayout.addWidget(self.ipythonWidget)
         comboWidget.setLayout(comboLayout)
 
-        self.acquisitionWidget.activeW.passToViewButton.clicked.connect(
+        self.acquisitionWidget.activeW.pass_to_view_button.clicked.connect(
             self.pass_to_view)
 
         self.hideAcquisitionB = QtGui.QPushButton('<<')
