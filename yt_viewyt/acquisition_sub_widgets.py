@@ -8,6 +8,26 @@ from yt import YTArray
 from acquisition_objects import YtDataObject
 
 
+class NameW(QtGui.QWidget):
+
+    def __init__(self, start_text):
+        super(NameW, self).__init__()
+
+        label = QtGui.QLabel('Object Name:')
+
+        self.name_w = QtGui.QLineEdit()
+        self.name_w.setText(start_text)
+
+        layout = QtGui.QHBoxLayout()
+        layout.addWidget(label)
+        layout.addWidget(self.name_w)
+
+        self.setLayout(layout)
+
+    def get_name(self):
+        return self.name_w.text()
+
+
 class FieldParametersW(QtGui.QWidget):
 
     def __init__(self):
@@ -40,7 +60,7 @@ class DataSourceW(QtGui.QWidget):
         data_source_layout.addWidget(self.data_sourcel)
         data_source_layout.addWidget(self.data_source)
 
-        self.data_sourcew.setLayout(data_source_layout)
+        self.setLayout(data_source_layout)
 
         # this object's parent is an AcquisitionActiveW
         self.data_source.addItems([x.name for x in
@@ -52,8 +72,6 @@ class DataSourceW(QtGui.QWidget):
         out = [x for x in self.parent.data_objects if x.name == name]
         if len(out) == 1:
             out = out[0].data
-        elif len(out) == 0:
-            out = None
         else:
             out = None
         return out
@@ -103,18 +121,17 @@ class CoordinateUnitsW(QtGui.QWidget):
 
     def get_unit(self):
         if self.prefix_widget.isHidden():
-            return self.unit_list.currentText()
+            out = self.unit_list.currentText()
+            if out == 'Code Length':
+                out = None
         else:
             unit = self.unit_list.currentText()
             prefix = self.prefix_widget.currentText()
-            if prefix != 'None':
-                out = prefix + unit
+            if unit != 'None':
+                out = unit + prefix
             else:
-                if unit != 'Code Length':
-                    out = unit
-                else:
-                    out = None
-            return out
+                out = unit
+        return out
 
 
 class CoordinateW(QtGui.QWidget):
@@ -133,6 +150,7 @@ class CoordinateW(QtGui.QWidget):
 
     def set_label(self, new_coord):
         self.label.setText(new_coord)
+        self.show()
 
 
 class CartCoordinateComboW(QtGui.QWidget):
@@ -169,13 +187,12 @@ class PointW(QtGui.QWidget):
         self.coord_combo_w = CartCoordinateComboW()
 
         # Currently, inputting values here will do nothing.
-        self.field_parametersw = FieldParametersW(self.parent)
+        self.field_parametersw = FieldParametersW()
 
         self.data_sourcew = DataSourceW(self.parent)
 
-        self.object_name = QtGui.QLineEdit()
-        self.object_name.setText(self.parent.active_data_object.
-                                 name + '_point')
+        self.object_name = NameW(self.parent.active_data_object.name +
+                                 '_point')
 
         self.generate_object_btn = QtGui.QPushButton('Generate Object')
         self.generate_object_btn.clicked.connect(self.generate_object)
@@ -200,12 +217,12 @@ class PointW(QtGui.QWidget):
         if unit is not None:
             coord = YTArray(coord, unit)
 
-        name = self.object_name.text()
+        name = self.object_name.get_name()
 
         source = self.parent.active_data_object.data
 
-        if self.field_parameters.get_field_parameters() == 'None':
-            if self.data_source.get_data_source() is None:
+        if self.field_parametersw.get_field_parameters() == 'None':
+            if self.data_sourcew.get_data_source() is None:
                 point = source.point(coord)
                 new_object = YtDataObject(point, name)
 
@@ -255,8 +272,7 @@ class AxisRayW(QtGui.QWidget):
 
         self.field_parameters = FieldParametersW()
 
-        self.object_name = QtGui.QLineEdit()
-        self.object_name.setText(self.parent.active_data_object.name +
+        self.object_name = NameW(self.parent.active_data_object.name +
                                  ' axis aligned ray')
 
         self.generate_object_btn = QtGui.QPushButton('Generate Object')
@@ -284,7 +300,7 @@ class AxisRayW(QtGui.QWidget):
 
         source = self.parent.active_data_object.data
 
-        name = self.object_name.text()
+        name = self.object_name.get_name()
 
         if units is not None:
             coord = YTArray([coord1, coord2], units)
@@ -304,18 +320,236 @@ class AxisRayW(QtGui.QWidget):
             self.parent.add_data_object(new_object)
 
     def set_coord_widgets(self, index):
-        if index is not None:
+        if index is None:
             axis = self.axis_dict[self.axisw.currentText()]
         else:
             axis = index
-        plane_axes = [key for key in list(self.axis_dict.keys)
+        plane_axes = [key for key in list(self.axis_dict.keys())
                       if self.axis_dict[key] != axis]
-        if hasattr(self, self.coord1_w) and hasattr(self, self.coord2_w):
+        if hasattr(self, 'coord1_w') and hasattr(self, 'coord2_w'):
             self.coord1_w.set_label(plane_axes[0])
             self.coord2_w.set_label(plane_axes[1])
         else:
             self.coord1_w = CoordinateW(plane_axes[0])
             self.coord2_w = CoordinateW(plane_axes[1])
+
+
+class OffAxisRayW(QtGui.QWidget):
+
+    def __init__(self, parent, parent_widget):
+        super(OffAxisRayW, self).__init__()
+
+        self.parent = parent
+        self.parent_widget = parent_widget
+
+        self.coordinate_units_w = CoordinateUnitsW()
+
+        start_coord_label = QtGui.QLabel("Ray Starting Coordinate:")
+
+        self.start_coord_w = CartCoordinateComboW()
+
+        start_coordc = QtGui.QWidget()
+        start_coordc_layout = QtGui.QHBoxLayout()
+        start_coordc_layout.addWidget(start_coord_label)
+        start_coordc_layout.addWidget(self.start_coord_w)
+        start_coordc.setLayout(start_coordc_layout)
+
+        end_coord_label = QtGui.QLabel("Ray Ending Coordinate:")
+
+        self.end_coord_w = CartCoordinateComboW()
+
+        end_coordc = QtGui.QWidget()
+        end_coordc_layout = QtGui.QHBoxLayout()
+        end_coordc_layout.addWidget(end_coord_label)
+        end_coordc_layout.addWidget(self.end_coord_w)
+        end_coordc.setLayout(end_coordc_layout)
+
+        self.field_parameters_w = FieldParametersW()
+
+        self.data_source_w = DataSourceW(self.parent)
+
+        self.object_name = NameW(self.parent.active_data_object.name +
+                                 '_arbitrary_ray')
+
+        self.generate_object_btn = QtGui.QPushButton('Generate Object')
+        self.generate_object_btn.clicked.connect(self.generate_object)
+
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(self.coordinate_units_w)
+        layout.addWidget(start_coordc)
+        layout.addWidget(end_coordc)
+        layout.addWidget(self.field_parameters_w)
+        layout.addWidget(self.data_source_w)
+        layout.addWidget(self.object_name)
+        layout.addWidget(self.generate_object_btn)
+        self.setLayout(layout)
+
+        self.parent_widget.layout.addWidget(self)
+        self.parent_widget.show()
+
+    def generate_object(self):
+        source = self.parent.active_data_object.data
+
+        unit = self.coordinate_units_w.get_unit()
+
+        sp = self.start_coord_w.get_coordinates()
+        ep = self.end_coord_w.get_coordinates()
+
+        name = self.object_name.get_name()
+
+        if unit is not None:
+            sp = YTArray(sp, unit)
+            ep = YTArray(ep, unit)
+            sp = source.arr(sp).in_units('code_length')
+            ep = source.arr(ep).in_units('code_length')
+
+        fp = self.field_parameters_w.get_field_parameters()
+
+        ds = self.data_source_w.get_data_source()
+
+        if fp == 'None':
+            if ds is None:
+                ray = source.ray(sp, ep)
+            else:
+                ray = source.ray(sp, ep, data_source=ds)
+
+        new_object = YtDataObject(ray, name)
+        self.parent.add_data_object(new_object)
+
+
+class AxisSliceW(QtGui.QWidget):
+    axis_dict = {"x": 0, "y": 1, "z": 2}
+
+    def __init__(self, parent, parent_widget):
+        super(AxisSliceW, self).__init__()
+
+        self.parent = parent
+        self.parent_widget = parent_widget
+
+        axis_label = QtGui.QLabel('Axis Along Which To Slice:')
+
+        self.axisw = QtGui.QComboBox()
+        self.axisw.addItems(list(self.axis_dict.keys()))
+        self.axisw.activated.connect(self.set_new_center_coord)
+
+        axiscw = QtGui.QWidget()
+        axiscw_layout = QtGui.QHBoxLayout()
+        axiscw_layout.addWidget(axis_label)
+        axiscw_layout.addWidget(self.axisw)
+        axiscw.setLayout(axiscw_layout)
+
+        self.slice_point_unit_w = CoordinateUnitsW()
+        self.slice_point_unit_w.label.setText('Units of Slice Point' +
+                                              'Coordinate:')
+
+        self.coordinate_w = CoordinateW('Point of Slice on Axis:')
+
+        center_label = QtGui.QLabel("Center of Slice:")
+        self.center_toggle_w = QtGui.QComboBox()
+        self.center_toggle_w.addItems(['None', 'Custom'])
+        self.center_toggle_w.currentIndexChanged.connect(self.add_coord_widget)
+
+        center_t_w = QtGui.QWidget()
+        center_t_w_layout = QtGui.QHBoxLayout()
+        center_t_w_layout.addWidget(center_label)
+        center_t_w_layout.addWidget(self.center_toggle_w)
+        center_t_w.setLayout(center_t_w_layout)
+
+        self.sec_unit_w = CoordinateUnitsW()
+        self.sec_unit_w.label.setText('Units of Center Coordinates:')
+
+        self.center_coord1_w = CoordinateW('y')
+        self.center_coord2_w = CoordinateW('z')
+
+        center_coord_combo_w = QtGui.QWidget()
+        center_coord_combo_layout = QtGui.QHBoxLayout()
+        center_coord_combo_layout.addWidget(self.center_coord1_w)
+        center_coord_combo_layout.addWidget(self.center_coord2_w)
+        center_coord_combo_w.setLayout(center_coord_combo_layout)
+
+        self.center_coord_cw = QtGui.QWidget()
+        center_coord_layout = QtGui.QVBoxLayout()
+        center_coord_layout.addWidget(self.sec_unit_w)
+        center_coord_layout.addWidget(center_coord_combo_w)
+        self.center_coord_cw.setLayout(center_coord_layout)
+
+        self.center_coord_cw.hide()
+
+        self.field_parameters_w = FieldParametersW()
+
+        self.data_source_w = DataSourceW(self.parent)
+
+        self.name_w = NameW(self.parent.active_data_object.name +
+                            self.axisw.currentText() + '_axis_slice')
+
+        self.generate_object_btn = QtGui.QPushButton('Generate Object')
+
+        self.generate_object_btn.clicked.connect(self.generate_object)
+
+        layout = QtGui.QVBoxLayout()
+
+        layout.addWidget(axiscw)
+        layout.addWidget(self.slice_point_unit_w)
+        layout.addWidget(self.coordinate_w)
+        layout.addWidget(center_t_w)
+        layout.addWidget(self.center_coord_cw)
+        layout.addWidget(self.field_parameters_w)
+        layout.addWidget(self.data_source_w)
+        layout.addWidget(self.name_w)
+        layout.addWidget(self.generate_object_btn)
+
+        self.setLayout(layout)
+
+        self.parent_widget.layout.addWidget(self)
+
+        self.parent_widget.show()
+
+    def add_coord_widget(self, index):
+        if self.center_toggle_w.currentText() == 'Custom':
+            self.center_coord_cw.show()
+        else:
+            self.center_coord_cw.hide()
+
+    def set_new_center_coord(self, index):
+        new_axes = [key for key in list(self.axis_dict.keys())
+                    if key != self.axisw.itemText(index)]
+        self.center_coord1_w.set_label(new_axes[0])
+        self.center_coord2_w.set_label(new_axes[1])
+
+    def generate_object(self):
+        axis = self.axis_dict[self.axisw.currentText()]
+
+        coord_unit = self.slice_point_unit_w.get_unit()
+        coord = self.coordinate_w.get_coordinate()
+
+        source = self.parent.active_data_object.get_data()
+
+        name = self.name_w.get_name()
+
+        field_params = self.field_parameters_w.get_field_parameters()
+
+        dsource = self.data_source_w.get_data_source()
+
+        if coord_unit is not None:
+            coord = YTArray([coord], coord_unit)
+            coord = source.arr(coord).in_units('code_length').item(0)
+
+        if self.center_toggle_w.currentText() == 'Custom':
+            c_coord = [self.center_coord1_w.get_coordinate(),
+                       self.center_coord2_w.get_coordinate()]
+            c_coord_unit = self.sec_unit_w.get_unit()
+            if c_coord_unit is not None:
+                c_coord = YTArray(c_coord, c_coord_unit)
+        else:
+            c_coord = None
+
+        if field_params == 'None':
+            new_slice = source.slice(axis, coord, center=c_coord,
+                                     field_parameters=None,
+                                     data_source=dsource)
+        new_object = YtDataObject(new_slice, name)
+
+        self.parent.add_data_object(new_object)
 
 
 class ZeroDW(QtGui.QComboBox):
@@ -345,9 +579,29 @@ class OneDW(QtGui.QComboBox):
 
     def show_ray_widget(self):
         if self.currentText() == 'Axis Aligned Ray':
-            pass
+            AxisRayW(self.parent, self.parent_widget)
 
         elif self.currentText() == 'Arbitrarily Aligned Ray':
+            OffAxisRayW(self.parent, self.parent_widget)
+
+
+class TwoDW(QtGui.QComboBox):
+
+    def __init__(self, parent, parent_widget):
+        super(TwoDW, self).__init__()
+        self.parent = parent
+        self.parent_widget = parent_widget
+        self.addItems(['Choose An Object', 'Axis Aligned Slice',
+                       'Arbitrarily Aligned Slice'])
+        self.activated.connect(self.show_slice_widget)
+
+        self.parent_widget.layout.addWidget(self)
+        self.parent_widget.show()
+
+    def show_slice_widget(self):
+        if self.currentText() == 'Axis Aligned Slice':
+            AxisSliceW(self.parent, self.parent_widget)
+        elif self.currentText() == 'Arbitrarily Aligned Slice':
             pass
 
 
@@ -370,6 +624,8 @@ class GeometricObjectW(QtGui.QComboBox):
             ZeroDW(self.parent, self.parent_widget)
         if self.currentText() == '1D':
             OneDW(self.parent, self.parent_widget)
+        if self.currentText() == '2D':
+            TwoDW(self.parent, self.parent_widget)
 
 
 class DataObjectW(QtGui.QWidget):
@@ -392,9 +648,7 @@ class DataObjectW(QtGui.QWidget):
 
     def show_object_widget(self, index):
         if self.data_object_options.currentText() == 'Geometric Object':
-            geometric_obj_w = GeometricObjectW(self.parent, self)
-            self.layout.addWidget(geometric_obj_w)
-            self.show()
+            GeometricObjectW(self.parent, self)
 
 
 class ActiveObjectMenu(QtGui.QMenu):
