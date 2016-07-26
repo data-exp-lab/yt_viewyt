@@ -18,7 +18,7 @@ class ViewYt(QtGui.QWidget):
 
     def __init__(self):
         super(ViewYt, self).__init__()
-        self.acquisitionWidget = AcquisitionMasterW()
+        self.acquisitionWidget = AcquisitionMasterW('ref')
 
         self.view_widget = ViewWidget()
 

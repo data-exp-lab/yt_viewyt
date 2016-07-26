@@ -3,7 +3,7 @@ import sys
 import os
 from PyQt4 import QtGui, \
     QtCore
-from acquisition_sub_widgets import ActiveObjectMenu
+from acquisition_data_object_widgets import ActiveObjectMenu
 from acquisition_objects import YtFrontEndObject
 
 
@@ -345,7 +345,7 @@ class AcquisitionActiveW(QtGui.QWidget):
         widgets.
     layout : QtGui.QVBoxLayout
         The layout for this widget, which is a vertical stack of widgets."""
-    def __init__(self):
+    def __init__(self, plot_ref):
         r"""Creates an instance of AcquisitionActiveW.
 
         This function instantiates all parameters of the class and sets the
@@ -364,7 +364,7 @@ class AcquisitionActiveW(QtGui.QWidget):
         self.pass_to_view_button = QtGui.QPushButton("View")
 
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.pop_menu = ActiveObjectMenu(self)
+        self.pop_menu = ActiveObjectMenu(self, plot_ref)
         self.customContextMenuRequested.connect(self.on_context_menu)
 
         self.layout = QtGui.QVBoxLayout()
@@ -454,7 +454,7 @@ class AcquisitionMasterW(QtGui.QWidget):
     layout : QtGui.QVBoxLayout
         The layout for the instance of `AcquisitionMasterW`"""
 
-    def __init__(self):
+    def __init__(self, plot_ref):
         r"""Instantiates all class parameters, and then shows the widget
         representation of the class.
 
@@ -464,7 +464,7 @@ class AcquisitionMasterW(QtGui.QWidget):
         by yt."""
         super(AcquisitionMasterW, self).__init__()
         self.sourceW = AcquisitionSourceW()
-        self.activeW = AcquisitionActiveW()
+        self.activeW = AcquisitionActiveW(plot_ref)
 
         self.sourceW.loadButton.clicked.connect(self.load_to_activeW)
 
