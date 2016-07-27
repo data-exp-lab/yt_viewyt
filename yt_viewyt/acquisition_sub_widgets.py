@@ -1,4 +1,3 @@
-import pdb
 from PyQt4 import QtGui
 from yt.units import dimensions
 from yt.units.unit_lookup_table import default_unit_symbol_lut as ulut, \
@@ -93,7 +92,7 @@ class CartAxisW(QtGui.QWidget):
         self.setLayout(layout)
 
     def get_axis(self):
-        return self.axis.currentText()
+        return self.options.currentText()
 
 
 class CoordinateUnitsW(QtGui.QWidget):
@@ -135,7 +134,7 @@ class CoordinateUnitsW(QtGui.QWidget):
             unit = self.unit_list.currentText()
             prefix = self.prefix_widget.currentText()
             if prefix != 'None':
-                out = unit + prefix
+                out = prefix + unit
             else:
                 out = unit
         return out
@@ -147,6 +146,7 @@ class CoordinateW(QtGui.QWidget):
         super(CoordinateW, self).__init__()
         self.label = QtGui.QLabel(coord)
         self.value = QtGui.QDoubleSpinBox()
+        self.value.setMaximum(1000)
         layout = QtGui.QHBoxLayout()
         layout.addWidget(self.label)
         layout.addWidget(self.value)

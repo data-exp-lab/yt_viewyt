@@ -385,6 +385,69 @@ class AxisSliceW(QtGui.QWidget):
         self.parent.add_data_object(new_object)
 
 
+class SphereW(QtGui.QWidget):
+
+    def __init__(self, parent, parent_widget):
+        super(SphereW, self).__init__()
+        self.parent = parent
+        self.parent_widget = parent_widget
+
+        self.center_units = CoordinateUnitsW()
+        self.center_units.label.setText("Center Coordinate Units:")
+
+        self.center = CartCoordinateComboW()
+        self.center.coord1.set_label('Center X:')
+        self.center.coord2.set_label('Center Y:')
+        self.center.coord3.set_label('Center Z:')
+
+        self.radius_units = CoordinateUnitsW()
+        self.radius_units.label.setText("Radius Length Units:")
+        self.radius = CoordinateW('Radius:')
+
+        self.field_parameters = FieldParametersW()
+
+        self.data_source = DataSourceW(self.parent)
+
+        self.name = NameW(self.parent.active_data_object.name + "_sphere")
+
+        self.generate_btn = QtGui.QPushButton('Generate Object')
+        self.generate_btn.clicked.connect(self.generate_object)
+
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(self.center_units)
+        layout.addWidget(self.center)
+        layout.addWidget(self.radius_units)
+        layout.addWidget(self.radius)
+        layout.addWidget(self.field_parameters)
+        layout.addWidget(self.data_source)
+        layout.addWidget(self.name)
+        layout.addWidget(self.generate_btn)
+
+        self.setLayout(layout)
+        self.parent_widget.layout.addWidget(self)
+        self.parent_widget.show()
+
+    def generate_object(self):
+        source = self.parent.active_data_object.data
+        center = self.center.get_coordinates()
+        center_units = self.center_units.get_unit()
+        radius = self.radius.get_coordinate()
+        radius_units = self.radius_units.get_unit()
+        field_params = self.field_parameters.get_field_parameters()
+        dsource = self.data_source.get_data_source()
+        name = self.name.get_name()
+
+        if center_units is not None:
+            center = YTArray(center, center_units)
+        if radius_units is not None:
+            radius = YTArray(radius, radius_units)
+
+        if field_params == 'None':
+            sphere = source.sphere(center, radius, data_source=dsource)
+            new_object = YtDataObject(sphere, name)
+            self.parent.add_data_object(new_object)
+
+
 class ZeroDW(QtGui.QComboBox):
 
     def __init__(self, parent, parent_widget):
@@ -438,6 +501,24 @@ class TwoDW(QtGui.QComboBox):
             pass
 
 
+class ThreeDW(QtGui.QComboBox):
+
+    def __init__(self, parent, parent_widget):
+        super(ThreeDW, self).__init__()
+        self.parent = parent
+        self.parent_widget = parent_widget
+        self.addItems(['All Data', 'Box Region', 'Cylinder', 'Ellipsoid',
+                       'Sphere'])
+        self.activated.connect(self.show_shape_widget)
+
+        self.parent_widget.layout.addWidget(self)
+        self.parent_widget.show()
+
+    def show_shape_widget(self):
+        if self.currentText() == "Sphere":
+            SphereW(self.parent, self.parent_widget)
+
+
 class GeometricObjectW(QtGui.QComboBox):
 
     def __init__(self, parent, parent_widget):
@@ -459,6 +540,8 @@ class GeometricObjectW(QtGui.QComboBox):
             OneDW(self.parent, self.parent_widget)
         if self.currentText() == '2D':
             TwoDW(self.parent, self.parent_widget)
+        if self.currentText() == '3D':
+            ThreeDW(self.parent, self.parent_widget)
 
 
 class DataObjectW(QtGui.QWidget):
@@ -500,8 +583,9 @@ class ActiveObjectMenu(QtGui.QMenu):
         trash = self.parent.data_object_list_widget.takeTopLevelItem(index)
         del trash
         del index
-        self.parent.dataObjects = [x for x in self.parent.data_objects if
-                                   x.name != item.text(0)]
+        print item.text(0)
+        self.parent.data_objects = [x for x in self.parent.data_objects if
+                                    x.name != item.text(0)]
         if self.parent.active_data_object is not None:
             if self.parent.active_data_object.name == item.text(0):
                 self.parent.active_data_object = None
