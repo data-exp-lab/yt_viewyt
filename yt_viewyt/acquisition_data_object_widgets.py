@@ -448,6 +448,32 @@ class SphereW(QtGui.QWidget):
             self.parent.add_data_object(new_object)
 
 
+class AllDataW(QtGui.QWidget):
+
+    def __init__(self, parent, parent_widget):
+        super(AllDataW, self).__init__()
+        self.parent = parent
+        self.parent_widget = parent_widget
+
+        self.name = NameW()
+        self.generate_btn = QtGui.QPushButton("Generate Object")
+        self.generate_btn.clicked.connect(self.generate_object)
+        layout = QtGui.QVBox()
+        layout.addWidget(self.name)
+        layout.addWidget(self.generate_btn)
+
+        self.setLayout(layout)
+        self.parent_widget.layout.addWidget(self)
+        self.parent_widget.show()
+
+    def generate_object(self):
+        name = self.name.get_name()
+        source = self.parent.active_data_object.data
+        new_thing = source.all_data()
+        new_obj = YtDataObject(new_thing, name)
+        self.parent.add_data_object(new_obj)
+
+
 class ZeroDW(QtGui.QComboBox):
 
     def __init__(self, parent, parent_widget):
@@ -517,6 +543,8 @@ class ThreeDW(QtGui.QComboBox):
     def show_shape_widget(self):
         if self.currentText() == "Sphere":
             SphereW(self.parent, self.parent_widget)
+        if self.currentText() == 'All Data':
+            AllDataW(self.parent, self.parent_widget)
 
 
 class GeometricObjectW(QtGui.QComboBox):

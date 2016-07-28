@@ -336,7 +336,7 @@ class VarFieldSelectorsW(QtGui.QWidget):
         if len(self.widget_list) < num:
             while len(self.widget_list) < num:
                 i = len(self.widget_list)
-                label = "Field %s:" % i
+                label = "Field %s:" % (i + 1)
                 self.widget_list.append(FieldSelectorW(self.source, label))
                 self.layout.addWidget(self.widget_list[-1])
         else:
