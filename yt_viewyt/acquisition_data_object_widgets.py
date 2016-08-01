@@ -1,3 +1,6 @@
+"""A module which defines all of the widgets needed to generate various
+Yt data objects.
+"""
 import types
 from PyQt4 import QtGui
 from yt import YTArray
@@ -8,6 +11,14 @@ from acquisition_plot_widgets import PlotObjectW
 
 
 class PointW(QtGui.QWidget):
+    r"""A widget for creating YTPoint objects from a selected object.
+
+    Parameters
+    ----------
+    parent : AcquisitionActiveW
+        The widget which is ultimately the source of this widget.
+    parent_widget : QtGui.QWidget
+        The widget which will display this widget as one of its children."""
 
     def __init__(self, parent, parent_widget):
         super(PointW, self).__init__()
@@ -44,6 +55,8 @@ class PointW(QtGui.QWidget):
         self.parent_widget.show()
 
     def generate_object(self):
+        r"""Generates a YTPoint from the selected yt object, with parameters
+        specified by the user in the widget."""
         unit = self.coordinate_unit_w.get_unit()
         coord = self.coord_combo_w.get_coordinates()
 
@@ -68,6 +81,15 @@ class PointW(QtGui.QWidget):
 
 
 class AxisRayW(QtGui.QWidget):
+    r"""A widget for creating axis aligned rays from a preselected YtObject.
+
+    Parameters
+    ----------
+    parent : ActiveAcquisitionW
+        The widget which ultimately gave rise to this widget. The widget
+        containing data objects.
+    parent_widget : QtGui.QWidget
+        The widget which will display this widget as one of its children."""
     axis_dict = {'x': 0, 'y': 1, 'z': 2}
 
     def __init__(self, parent, parent_widget):
@@ -125,6 +147,8 @@ class AxisRayW(QtGui.QWidget):
         self.parent_widget.show()
 
     def generate_object(self):
+        r"""This function generates an axis aligned ray from a YtObject with
+        parameters specified by the user in the widget."""
         axis = self.axis_dict[self.axisw.currentText()]
 
         units = self.coord_units_w.get_unit()
@@ -153,6 +177,13 @@ class AxisRayW(QtGui.QWidget):
             self.parent.add_data_object(new_object)
 
     def set_coord_widgets(self, index):
+        r"""This function sets the labels for the axes coordinate widgets
+        based on user input or startup conditions.
+
+        Parameters
+        ----------
+        index : int
+            The index of the selected axis."""
         if index is None:
             axis = self.axis_dict[self.axisw.currentText()]
         else:
@@ -168,6 +199,15 @@ class AxisRayW(QtGui.QWidget):
 
 
 class OffAxisRayW(QtGui.QWidget):
+    r"""A widget for creating off axis rays from a YtObject.
+
+    Parameters
+    ----------
+    parent : ActiveAcquisitionW
+        The widget which ultimately gave rise to this widget. The widget
+        containing data objects.
+    parent_widget : QtGui.QWidget
+        The widget which will display this widget as one of its children."""
 
     def __init__(self, parent, parent_widget):
         super(OffAxisRayW, self).__init__()
@@ -221,6 +261,8 @@ class OffAxisRayW(QtGui.QWidget):
         self.parent_widget.show()
 
     def generate_object(self):
+        r"""Generates an off axis ray through a preselected YtObject based
+        on the parameters specified by the user in the widget."""
         source = self.parent.active_data_object.data
 
         unit = self.coordinate_units_w.get_unit()
@@ -251,6 +293,15 @@ class OffAxisRayW(QtGui.QWidget):
 
 
 class AxisSliceW(QtGui.QWidget):
+    r"""A widget for generating axis aligned slices from a preselected YtObject.
+
+    Parameters
+    ----------
+    parent : ActiveAcquisitionW
+        The widget which ultimately gave rise to this widget. The widget
+        containing data objects.
+    parent_widget : QtGui.QWidget
+        The widget which will display this widget as one of its children."""
     axis_dict = {"x": 0, "y": 1, "z": 2}
 
     def __init__(self, parent, parent_widget):
@@ -338,18 +389,36 @@ class AxisSliceW(QtGui.QWidget):
         self.parent_widget.show()
 
     def add_coord_widget(self, index):
+        r"""Displays a coordinate widget if the user wants to define a custom
+        center for the slice that is generated.
+
+        Parameters
+        ----------
+        index : int
+            Argument provided for compatibility with Qt slot:signal design.
+            Not used."""
         if self.center_toggle_w.currentText() == 'Custom':
             self.center_coord_cw.show()
         else:
             self.center_coord_cw.hide()
 
     def set_new_center_coord(self, index):
+        r"""This function takes care of setting the labels for the center
+        coordinates if the user changes the axis along which the slice is
+        being made.
+
+        Parameters
+        ----------
+        index : int
+            Provided for compatibility with Qt slot:signal design. Not used."""
         new_axes = [key for key in list(self.axis_dict.keys())
                     if key != self.axisw.itemText(index)]
         self.center_coord1_w.set_label(new_axes[0])
         self.center_coord2_w.set_label(new_axes[1])
 
     def generate_object(self):
+        r"""Generates an axis aligned object based on the user input from the
+        widget."""
         axis = self.axis_dict[self.axisw.currentText()]
 
         coord_unit = self.slice_point_unit_w.get_unit()
@@ -386,6 +455,15 @@ class AxisSliceW(QtGui.QWidget):
 
 
 class SphereW(QtGui.QWidget):
+    r"""A widget for generating a YTSphere from a preselected YtObject.
+
+    Parameters
+    ----------
+    parent : ActiveAcquisitionW
+        The widget which ultimately gave rise to this widget. The widget
+        containing data objects.
+    parent_widget : QtGui.QWidget
+        The widget which will display this widget as one of its children."""
 
     def __init__(self, parent, parent_widget):
         super(SphereW, self).__init__()
@@ -428,6 +506,8 @@ class SphereW(QtGui.QWidget):
         self.parent_widget.show()
 
     def generate_object(self):
+        r"""Generates a YTSphere based on the parameters provided by the user
+        in the widget."""
         source = self.parent.active_data_object.data
         center = self.center.get_coordinates()
         center_units = self.center_units.get_unit()
@@ -449,6 +529,16 @@ class SphereW(QtGui.QWidget):
 
 
 class AllDataW(QtGui.QWidget):
+    r"""A widget for generating an object representing all of the data from a
+    YtObject.
+
+    Parameters
+    ----------
+    parent : ActiveAcquisitionW
+        The widget which ultimately gave rise to this widget. The widget
+        containing data objects.
+    parent_widget : QtGui.QWidget
+        The widget which will display this widget as one of its children."""
 
     def __init__(self, parent, parent_widget):
         super(AllDataW, self).__init__()
@@ -475,6 +565,15 @@ class AllDataW(QtGui.QWidget):
 
 
 class ZeroDW(QtGui.QComboBox):
+    r"""A widget for selecting to create a zero dimensional YT object.
+
+    Parameters
+    ----------
+    parent : ActiveAcquisitionW
+        The widget which ultimately gave rise to this widget. The widget
+        containing data objects.
+    parent_widget : QtGui.QWidget
+        The widget which will display this widget as one of its children."""
 
     def __init__(self, parent, parent_widget):
         super(ZeroDW, self).__init__()
@@ -488,6 +587,16 @@ class ZeroDW(QtGui.QComboBox):
 
 
 class OneDW(QtGui.QComboBox):
+    r"""A widget for selecting which one dimensional type of YT object a user
+    wants to generate.
+
+    Parameters
+    ----------
+    parent : ActiveAcquisitionW
+        The widget which ultimately gave rise to this widget. The widget
+        containing data objects.
+    parent_widget : QtGui.QWidget
+        The widget which will display this widget as one of its children."""
 
     def __init__(self, parent, parent_widget):
         super(OneDW, self).__init__()
@@ -500,6 +609,8 @@ class OneDW(QtGui.QComboBox):
         self.parent_widget.show()
 
     def show_ray_widget(self):
+        r"""Creates an instance of one of the ray generation widgets depending
+        on user input."""
         if self.currentText() == 'Axis Aligned Ray':
             AxisRayW(self.parent, self.parent_widget)
 
@@ -508,6 +619,16 @@ class OneDW(QtGui.QComboBox):
 
 
 class TwoDW(QtGui.QComboBox):
+    r"""A widget for selecting which two dimensional geometric YT object a user
+    wants to create.
+
+    Parameters
+    ----------
+    parent : ActiveAcquisitionW
+        The widget which ultimately gave rise to this widget. The widget
+        containing data objects.
+    parent_widget : QtGui.QWidget
+        The widget which will display this widget as one of its children."""
 
     def __init__(self, parent, parent_widget):
         super(TwoDW, self).__init__()
@@ -528,6 +649,16 @@ class TwoDW(QtGui.QComboBox):
 
 
 class ThreeDW(QtGui.QComboBox):
+    r"""A widget for selecting which three dimensional YT object a user wants
+    to create.
+
+    Parameters
+    ----------
+    parent : ActiveAcquisitionW
+        The widget which ultimately gave rise to this widget. The widget
+        containing data objects.
+    parent_widget : QtGui.QWidget
+        The widget which will display this widget as one of its children."""
 
     def __init__(self, parent, parent_widget):
         super(ThreeDW, self).__init__()
@@ -548,7 +679,16 @@ class ThreeDW(QtGui.QComboBox):
 
 
 class GeometricObjectW(QtGui.QComboBox):
+    r"""A widget that takes care of displaying the correct dimensional
+    selection widget based on user input.
 
+    Parameters
+    ----------
+    parent : ActiveAcquisitionW
+        The widget which ultimately gave rise to this widget. The widget
+        containing data objects.
+    parent_widget : QtGui.QWidget
+        The widget which will display this widget as one of its children."""
     def __init__(self, parent, parent_widget):
         super(GeometricObjectW, self).__init__()
         self.parent = parent
@@ -562,6 +702,8 @@ class GeometricObjectW(QtGui.QComboBox):
         self.parent_widget.show()
 
     def show_dimension_widget(self, index):
+        r"""This function generates and displays the correct dimensional
+        selection widget based on user input."""
         if self.currentText() == '0D':
             ZeroDW(self.parent, self.parent_widget)
         if self.currentText() == '1D':
@@ -573,16 +715,19 @@ class GeometricObjectW(QtGui.QComboBox):
 
 
 class DataObjectW(QtGui.QWidget):
+    r"""A widget that displays the correct selector widget based on user input.
 
+    Parameters
+    ----------
+    parent : ActiveAcquisitionW
+        The widget which ultimately gave rise to this widget. The widget
+        containing data objects."""
     def __init__(self, parent):
         super(DataObjectW, self).__init__()
         self.parent = parent
         self.data_object_options = QtGui.QComboBox()
         self.data_object_options.addItems(['Choose An Object Type',
-                                           'Geometric Object',
-                                           'Filtering Object',
-                                           'Collection Object',
-                                           'Construction Object'])
+                                           'Geometric Object'])
         self.data_object_options.activated.connect(
             self.show_object_widget)
 
@@ -591,11 +736,25 @@ class DataObjectW(QtGui.QWidget):
         self.setLayout(self.layout)
 
     def show_object_widget(self, index):
+        r"""Displays the correct widget selector based on user input."""
         if self.data_object_options.currentText() == 'Geometric Object':
             GeometricObjectW(self.parent, self)
 
 
 class ActiveObjectMenu(QtGui.QMenu):
+    r"""A widget that appears when users left click on a selected YtObject.
+    Gives users the ability to remove objects, create plots, and create YT
+    objects.
+
+    Parameters
+    ----------
+    aParent : ActiveAcquisitionW
+        The widget which ultimately gave rise to this widget. The widget
+        containing data objects.
+    plot_ref : ViewWidget
+        A reference to the main application plot viewing area, so that plot
+        generators can display the plot they create.
+    """
 
     def __init__(self, aParent, plot_ref):
         super(ActiveObjectMenu, self).__init__()
@@ -606,6 +765,8 @@ class ActiveObjectMenu(QtGui.QMenu):
         self.addAction("Remove", self.remove)
 
     def remove(self):
+        r"""Removes the selected YtObject from the application, by deleting
+        all references to the object."""
         item = self.parent.data_object_list_widget.currentItem()
         index = self.parent.data_object_list_widget.indexOfTopLevelItem(item)
         trash = self.parent.data_object_list_widget.takeTopLevelItem(index)
@@ -619,6 +780,8 @@ class ActiveObjectMenu(QtGui.QMenu):
                 self.parent.active_data_object = None
 
     def get_plotw(self):
+        r"""Creates a plot generator selection widget that is deleted from
+        memory when it is exited."""
         def closeEvent(self, event):
             self.deleteLater()
         plot_dialog = PlotObjectW(self.parent, self.plot_ref)
@@ -628,6 +791,8 @@ class ActiveObjectMenu(QtGui.QMenu):
         plot_dialog.show()
 
     def get_data_objectw(self):
+        r"""Creates a data object generator selection widget that is deleted
+        from memory when it is exited."""
         def closeEvent(self, event):
             self.deleteLater()
 

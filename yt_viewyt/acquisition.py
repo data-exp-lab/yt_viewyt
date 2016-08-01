@@ -1,4 +1,7 @@
-"""All classes associated with acquiring data for application"""
+"""All major classes and widgets associated with acquiring data for
+the application.
+"""
+
 import sys
 import os
 from PyQt4 import QtGui, \
@@ -18,16 +21,11 @@ class DirectoryObject(object):
 
     Parameters
     ----------
-    location : String
-        String that contains the current working directory.
-    directoryTree : List
-        List that contains the path-name of the current directory,
-        the list of sub-directories in the current directory, and
-        a list of files in the current directory.
-    source : String
-        The string denoting where the current directoryObject is from.
-        A future goal of this application is the ability to support
-        data from multiple sources via some mechanism.
+    path : {None, string}, optional
+        The path that marks the initial location of the given instance.
+    source : {'Local Machine', string}
+        The source of the given path and ultimately the instance itself.
+        Defaults to "Local Machine".
 
     Notes:
     -------
@@ -39,24 +37,6 @@ class DirectoryObject(object):
     """
 
     def __init__(self, path=None, source="Local Machine"):
-        r"""Initializes an instance of the DirectoryObject.
-
-        Creates a DirectoryObject based on an input path, with the initial
-        assumption that the path is to a location on the local machine.
-
-        Parameters
-        ----------
-        path : {None, sting}, optional
-            The path that marks the initial location of the given
-            instance.
-        source : {'Local Machine', 'other source string'}, optional
-            The source of the given path and ultimately the instance
-            itself. Defaults to "Local Machine".
-
-        Returns
-        -------
-        DirectoryObject
-            """
         if path is None:
             self.location = os.getcwd()
             self.directoryTree = self.make_directory_tree()
@@ -162,36 +142,6 @@ class AcquisitionSourceW(QtGui.QWidget):
     It then calls for a YtObject to be instantiated utilizing the name
     and location of selected files.
 
-    Parameters
-    ----------
-    directoryObjs : list
-        A list of all available directory objs, both local and remote.
-    activeDirectoryObj : DirectoryObject
-        The directory object whose files and folders are currently displayed by
-        the widget.
-    fileTreeWidget : QTreeWidget
-        The widget that displays the ``activeDirectoryObj`` files and folders.
-        It also responds to user input to enable navigation on the
-        ``activeDirectoryObj``.
-    lButton : QPushButton
-        One of two buttons used to cycle through the list of available
-        directoryObjs. Currently has no functionality.
-    rButton : QPushButton
-        The other button used to cycle through the list of available
-        directories. Currently has no functionality.
-    sourceLabel : QLabel
-        A Widget whose text displays the current activeDirectoryObj.
-    sourceBarLayout : QHBoxLayout
-        The layout of the widget containing lButton, rButton, and
-        sourceLabel.
-    sourceBarWidget : QWidget
-        The widget containing lButton, rButton, and sourceLabel
-    loadButtton : QPushButton
-        The button that is supposed to function as the call
-        to load a file for users. Subject to change.
-    layout : QVBoxLayout
-        The Layout of this widget.
-
     Notes
     ------
     This is going to be something that will be continuously modified so long as
@@ -218,11 +168,7 @@ class AcquisitionSourceW(QtGui.QWidget):
     """
 
     def __init__(self):
-        r""""Initializes an instance of AcquisitionSourceW.
 
-        Creates an object with the capacity to display the contents of a
-        DirectoryObject along with icons for files and directories. This
-        widget also responds to user input, enabling directory navigation."""
         super(AcquisitionSourceW, self).__init__()
 
         self.directoryObjs = []
@@ -327,29 +273,12 @@ class AcquisitionActiveW(QtGui.QWidget):
 
     Parameters
     ----------
-    dataObjects : List
-        The list of YtObjects currently in the namespace of the program.
-    activeDataObject : String
-        The name of which object in the `dataObjects` list is currently
-        selected by the user. Initially it is None.
-    label : QtGui.QLabel
-        This label is present to clearly identify what the contents of the
-        `dataObjectListWidget` are for users.
-    dataObjectListWidget : QtGui.QListWidget
-        The widget which displays all items in `dataObjects`
-    passToViewButton : QtGui.QPushButton
-        A button that when clicked will trigger the creation of an frb from
-        the dataset given by `activeDataObject`, and then instruct the system
-        to display that frb in the main window. This functionality is
-        implemented in viewyt.py due to its interaction between main level
-        widgets.
-    layout : QtGui.QVBoxLayout
-        The layout for this widget, which is a vertical stack of widgets."""
-    def __init__(self, plot_ref):
-        r"""Creates an instance of AcquisitionActiveW.
+    plot_ref : ViewWidget
+        The reference to the view widget which enables all plot generators
+        to place generated plots in the plot viewing area.
+    """
 
-        This function instantiates all parameters of the class and sets the
-        layout of the widget. It then shows the widget onscreen."""""
+    def __init__(self, plot_ref):
         super(AcquisitionActiveW, self).__init__()
         self.data_objects = []
         self.active_data_object = None
@@ -447,21 +376,12 @@ class AcquisitionMasterW(QtGui.QWidget):
 
     Parameters
     ----------
-    sourceW : AcquisitionSourceW
-        The widget that manages the sources of data.
-    activeW : AcquisitionActiveW
-        The widget that manages currently loaded data from all sources.
-    layout : QtGui.QVBoxLayout
-        The layout for the instance of `AcquisitionMasterW`"""
+    plot_ref : ViewWidget
+        A reference allowing plots generated by the activeW to be displayed
+        in the plot area.
+    """
 
     def __init__(self, plot_ref):
-        r"""Instantiates all class parameters, and then shows the widget
-        representation of the class.
-
-        This function takes care of initializing all class parameters and then
-        connects the load button of `sourceW` to the load_to_activeW function,
-        this is what enables files to be loaded into the app as a data object
-        by yt."""
         super(AcquisitionMasterW, self).__init__()
         self.sourceW = AcquisitionSourceW()
         self.activeW = AcquisitionActiveW(plot_ref)
