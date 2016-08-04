@@ -1,11 +1,26 @@
+r"""This module defines all of the widgets used to generate yt plots from
+loaded data objects.
+"""
 import yt
 from PyQt4 import QtGui
 from acquisition_sub_widgets import CartAxisW, MasterFieldSelectionW, \
-    WidthW, FieldParametersW, DataSourceW, FieldSelectorW, CoordinateW
+    WidthW, FieldParametersW, DataSourceW, FieldSelectorW
+from viewtypes import PlotWindowView
 yt.toggle_interactivity()
 
 
 class PlotObjectW(QtGui.QWidget):
+    r"""A widget for selecting which type of plot to generate and then
+    displaying that plot generator.
+
+    Parameters
+    ----------
+    parent : AcquisitionActiveW
+        The widget that is ultimately responsible for creating the widget
+        instance, and that also manages all data the widget may utilize.
+    plot_ref : ViewWidget
+        A reference to the application plot viewing area, that allows for plots
+        to be displayed in the windowed area."""
 
     def __init__(self, parent, plot_ref):
         super(PlotObjectW, self).__init__()
@@ -38,6 +53,7 @@ class PlotObjectW(QtGui.QWidget):
         self.show()
 
     def show_plot_widget(self):
+        r"""Shows the correct plot generation widget based on user input."""
         selection = self.plt_optns.currentText()
 
         if selection == 'Axis Aligned Slice Plot':
@@ -51,6 +67,19 @@ class PlotObjectW(QtGui.QWidget):
 
 
 class AxisSlicePltW(QtGui.QWidget):
+    r"""A widget that displays all of the options users can make to generate
+    an on axis slice plot.
+
+    Parameters
+    ----------
+    parent : AcquisitionActiveW
+        The widget that is ultimately responsible for this widgets creation.
+        This allows the plot widget to interact with loaded data.
+    parent_widget : QtGui.QWidget
+        The widget which displays this widget as one of its children.
+    plot_ref : ViewWidget
+        A reference to the application view area allowing for the plot to
+        be displayed in said area."""
 
     def __init__(self, parent, parent_widget, plot_ref):
         super(AxisSlicePltW, self).__init__()
@@ -111,7 +140,9 @@ class AxisSlicePltW(QtGui.QWidget):
         self.parent_widget.layout.addWidget(self)
         self.parent_widget.show()
 
-    def generate_plot(self, boolean):
+    def generate_plot(self):
+        r"""Generates an on axis slice plot from the given parameters in the
+        widget. """
         source = self.parent.active_data_object.data
         axis = self.plot_axis.get_axis()
         fields = self.plot_fields.get_fields()
@@ -119,7 +150,7 @@ class AxisSlicePltW(QtGui.QWidget):
         w = self.width.get_width()
 
         if c not in ['m', 'c', '', 'max', 'min']:
-            self.center_w.setText("CHANGE IT. THE DEVELOPER OCCUPIED")
+            self.center_w.setText("CHANGE IT.")
             c = None
 
         fs = self.font_size.value()
@@ -132,10 +163,25 @@ class AxisSlicePltW(QtGui.QWidget):
             plot = yt.SlicePlot(source, axis, fields, width=w,
                                 fontsize=fs,
                                 data_source=dsource)
-            plot.show()
+            view = PlotWindowView(plot)
+            self.plot_ref.addSubWindow(view)
+            view.show()
 
 
 class AxisProjectionPltW(QtGui.QWidget):
+    r"""A widget for getting user input needed to generate an on axis projection
+    plot.
+
+    Parameters
+    ----------
+    parent : AcquisitionActiveW
+        The widget that contains all references to data and enabled the
+        creation of the plot.
+    parent_widget : QtGui.QWidget
+        The widget that will display this widget as one of its children.
+    plot_ref : ViewWidget
+        A reference to the area where plots are displayed so that the newly
+        generated plot can be put there."""
 
     def __init__(self, parent, parent_widget, plot_ref):
         super(AxisProjectionPltW, self).__init__()

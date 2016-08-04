@@ -18,9 +18,10 @@ class ViewYt(QtGui.QWidget):
 
     def __init__(self):
         super(ViewYt, self).__init__()
-        self.acquisitionWidget = AcquisitionMasterW('ref')
 
         self.view_widget = ViewWidget()
+
+        self.acquisitionWidget = AcquisitionMasterW(self.view_widget)
 
         self.view_widget.enough_windows[bool].connect(self.show_link_button)
 

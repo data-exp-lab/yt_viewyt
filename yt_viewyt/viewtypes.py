@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib
 from matplotlib.figure import Figure
-from PyQt4 import QtCore
+from PyQt4 import QtCore, QtGui
 
 backend_dic = {'GTK': ['backend_gtk', 'FigureCanvasGTK',
                        'FigureManagerGTK'],
@@ -198,3 +198,17 @@ class FrbView(MplCanvas):
             self.ax.set_ylim(0, 1024)
 
             self.canvas.draw()
+
+
+class PlotWindowView(QtGui.QMdiSubWindow):
+
+    def __init__(self, plot_window):
+        super(PlotWindowView, self).__init__()
+        self.plot_window = plot_window
+        if len(self.plot_window.plots) > 1:
+            pass
+        else:
+            x = self.plot_window.plots.keys()
+            x = x[0]
+            self.setWidget(self.plot_window.plots[x].canvas)
+        self.show()
