@@ -664,8 +664,7 @@ class ThreeDW(QtGui.QComboBox):
         super(ThreeDW, self).__init__()
         self.parent = parent
         self.parent_widget = parent_widget
-        self.addItems(['All Data', 'Box Region', 'Cylinder', 'Ellipsoid',
-                       'Sphere'])
+        self.addItems(['All Data', 'Sphere'])
         self.activated.connect(self.show_shape_widget)
 
         self.parent_widget.layout.addWidget(self)

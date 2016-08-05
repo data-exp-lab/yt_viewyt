@@ -206,9 +206,15 @@ class PlotWindowView(QtGui.QMdiSubWindow):
         super(PlotWindowView, self).__init__()
         self.plot_window = plot_window
         if len(self.plot_window.plots) > 1:
-            pass
+            temp_widget = QtGui.QWidget()
+            temp_layout = QtGui.QHBoxLayout()
+            for k in self.plot_window.plots.keys():
+                temp_layout.addWidget(self.plot_window.plots[k])
+            temp_widget.setLayout(temp_layout)
+            self.setWidget(temp_widget)
+            self.show()
         else:
             x = self.plot_window.plots.keys()
             x = x[0]
             self.setWidget(self.plot_window.plots[x].canvas)
-        self.show()
+            self.show()

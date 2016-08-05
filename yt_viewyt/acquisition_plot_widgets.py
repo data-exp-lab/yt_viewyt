@@ -277,7 +277,9 @@ class AxisProjectionPltW(QtGui.QWidget):
             plt = yt.ProjectionPlot(source, axis, fields, width=w,
                                     weight_field=weight_field, fontsize=fs,
                                     data_source=ds, method=mthd)
-            plt.save('ProjectionsDone.png')
+            view = PlotWindowView(plt)
+            self.plot_ref.addSubWindow(view)
+            view.show()
 
 
 class PhasePltW(QtGui.QWidget):
@@ -388,7 +390,9 @@ class PhasePltW(QtGui.QWidget):
                             weight_field=weight_field, x_bins=x_bins,
                             y_bins=y_bins, accumulation=accumulation,
                             fractional=fractional, fontsize=fontsize)
-        plot.show()
+        view = PlotWindowView(plot)
+        self.plot_ref.addSubWindow(view)
+        view.show()
 
 
 class ProfilePltW(QtGui.QWidget):
@@ -493,4 +497,6 @@ class ProfilePltW(QtGui.QWidget):
         plt = yt.ProfilePlot(s, xf, yf, weight_field=wf, n_bins=nb,
                              accumulation=accum, fractional=frac, x_log=xl,
                              y_log=yl)
-        plt.show()
+        view = PlotWindowView(plt)
+        self.plot_ref.addSubWindow(view)
+        view.show()
