@@ -57,7 +57,7 @@ class ViewYt(QtGui.QWidget):
         self.ipythonWidget.pushVariables({'ViewYT': self})
 
     def pass_to_view(self):
-        selected_data = self.acquisitionWidget.activeW.get_active_DataObject()
+        selected_data = self.acquisitionWidget.activeW.get_active_data_object()
         selected_data = selected_data.data
         self.view_widget.add_frb_view(selected_data)
 
