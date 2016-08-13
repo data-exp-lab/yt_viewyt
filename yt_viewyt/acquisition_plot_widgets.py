@@ -9,6 +9,18 @@ from viewtypes import PlotWindowView
 yt.toggle_interactivity()
 
 
+class ScrollArea(QtGui.QScrollArea):
+    r"""A convenience class added so that plot generator widgets will fit on any screen.
+    As a result, they also have scroll bars."""
+    def __init__(self, parent, plot_ref):
+        super(ScrollArea, self).__init__()
+        self.plot_w = PlotObjectW(parent, plot_ref)
+        self.setWidget(self.plot_w)
+        self.setWidgetResizable(True)
+        self.show()
+        self.plot_w.show()
+
+
 class PlotObjectW(QtGui.QWidget):
     r"""A widget for selecting which type of plot to generate and then
     displaying that plot generator.
@@ -50,7 +62,6 @@ class PlotObjectW(QtGui.QWidget):
         self.layout.addWidget(plt_optns_combo)
 
         self.setLayout(self.layout)
-        self.show()
 
     def show_plot_widget(self):
         r"""Shows the correct plot generation widget based on user input."""
@@ -368,7 +379,7 @@ class PhasePltW(QtGui.QWidget):
         self.setLayout(layout)
 
         self.parent_widget.layout.addWidget(self)
-        self.parent_widget.show()
+        self.show()
 
     def generate_plot(self):
         source = self.parent.active_data_object.data

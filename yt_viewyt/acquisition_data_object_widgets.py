@@ -7,7 +7,7 @@ from yt import YTArray
 from acquisition_objects import YtDataObject
 from acquisition_sub_widgets import NameW, FieldParametersW, DataSourceW, \
      CoordinateUnitsW, CoordinateW, CartCoordinateComboW
-from acquisition_plot_widgets import PlotObjectW
+from acquisition_plot_widgets import PlotObjectW, ScrollArea
 
 
 class PointW(QtGui.QWidget):
@@ -783,11 +783,12 @@ class ActiveObjectMenu(QtGui.QMenu):
         memory when it is exited."""
         def closeEvent(self, event):
             self.deleteLater()
-        plot_dialog = PlotObjectW(self.parent, self.plot_ref)
-        plot_dialog.closeEvent = types.MethodType(closeEvent,
-                                                  plot_dialog,
+        #plot_dialog = PlotObjectW(self.parent, self.plot_ref)
+        self.plot_dialog = ScrollArea(self.parent, self.plot_ref)
+        self.plot_dialog.closeEvent = types.MethodType(closeEvent,
+                                                  self.plot_dialog,
                                                   QtGui.QCloseEvent)
-        plot_dialog.show()
+        self.plot_dialog.show()
 
     def get_data_objectw(self):
         r"""Creates a data object generator selection widget that is deleted
