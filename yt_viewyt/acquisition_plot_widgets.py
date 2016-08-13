@@ -10,8 +10,8 @@ yt.toggle_interactivity()
 
 
 class ScrollArea(QtGui.QScrollArea):
-    r"""A convenience class added so that plot generator widgets will fit on any screen.
-    As a result, they also have scroll bars."""
+    r"""A convenience class added so that plot generator widgets will fit on any
+    screen. As a result, they also have scroll bars."""
     def __init__(self, parent, plot_ref):
         super(ScrollArea, self).__init__()
         self.plot_w = PlotObjectW(parent, plot_ref)
