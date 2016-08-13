@@ -3,7 +3,8 @@ YT currently stands as one of the only, if not the most, effective means of data
 
 
 # Dependencies #
-In addition to YT, this application requires PyQt, Sips, and obviously yt and all of its dependencies. 
+This application requires Qt4, PyQt4, Sips, and obviously yt and all of its dependencies. 
 
 # Demo Execution #
-To run simply input "/path/to/clone/view_yt/viewyt.py"
+To run simply input "/path/to/clone/yt_viewyt/viewyt.py". Individual widgets can
+be accessed by utilizing the yt extensions capabilities. 
